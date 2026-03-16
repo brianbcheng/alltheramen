@@ -31,7 +31,8 @@ export default function GridCanvas({
   } | null>(null);
 
   const maxRow = Math.ceil(totalProducts / GRID_COLS) - 1;
-  const gridPixelWidth = GRID_COLS * CELL_WIDTH;
+  const actualCols = maxRow === 0 ? totalProducts : GRID_COLS;
+  const gridPixelWidth = actualCols * CELL_WIDTH;
   const gridPixelHeight = (maxRow + 1) * CELL_HEIGHT;
 
   // Center the camera on the grid initially
