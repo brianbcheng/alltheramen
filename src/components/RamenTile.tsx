@@ -40,6 +40,7 @@ const RamenTile = React.memo(function RamenTile({
         country={product.country}
         style={product.style}
         stars={product.stars}
+        imagePath={product.imagePath}
       />
       <div style={{ padding: "4px 8px" }}>
         <div

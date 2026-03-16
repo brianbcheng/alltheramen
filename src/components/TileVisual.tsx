@@ -5,6 +5,7 @@ interface TileVisualProps {
   country: string;
   style: string;
   stars: number;
+  imagePath?: string | null;
   size?: number;
 }
 
@@ -21,6 +22,7 @@ export default function TileVisual({
   country,
   style,
   stars,
+  imagePath,
   size = 200,
 }: TileVisualProps) {
   const { bg, text } = getCountryColor(country);
@@ -34,7 +36,36 @@ export default function TileVisual({
 
   const dotSize = Math.round(8 * scale);
   const dotGap = Math.round(2 * scale);
+  const borderRadius = `${Math.round(8 * scale)}px ${Math.round(8 * scale)}px 0 0`;
 
+  // If we have a real product image, show it
+  if (imagePath) {
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          position: "relative",
+          overflow: "hidden",
+          borderRadius,
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <img
+          src={imagePath}
+          alt={brand}
+          loading="lazy"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: generated tile visual
   return (
     <div
       style={{
@@ -46,7 +77,7 @@ export default function TileVisual({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-        borderRadius: `${Math.round(8 * scale)}px ${Math.round(8 * scale)}px 0 0`,
+        borderRadius,
       }}
     >
       {/* Style emoji */}

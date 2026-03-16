@@ -155,6 +155,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 country={product.country}
                 style={product.style}
                 stars={product.stars}
+                imagePath={product.imagePath}
                 size={300}
               />
             </div>
