@@ -173,7 +173,7 @@ export default function GridCanvas({
               left: x,
               top: y,
               width: 200,
-              height: 240,
+              height: 200,
             }}
           >
             <RamenTile

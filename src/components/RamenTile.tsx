@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import TileVisual from "./TileVisual";
 import type { RamenProduct } from "@/types";
 
 interface RamenTileProps {
@@ -22,11 +21,9 @@ const RamenTile = React.memo(function RamenTile({
       className="ramen-tile"
       style={{
         width: 200,
-        height: 240,
+        height: 200,
         borderRadius: 8,
         backgroundColor: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         overflow: "hidden",
         cursor: isDragging ? "grabbing" : "grab",
         userSelect: "none",
@@ -35,45 +32,26 @@ const RamenTile = React.memo(function RamenTile({
       onPointerDown={onPointerDown}
       onPointerUp={(e) => onPointerUp(e, product)}
     >
-      <TileVisual
-        brand={product.brand}
-        country={product.country}
-        style={product.style}
-        stars={product.stars}
-        imagePath={product.imagePath}
+      <img
+        src={product.imagePath!}
+        alt={`${product.brand} ${product.variety}`}
+        loading="lazy"
+        draggable={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+        }}
       />
-      <div style={{ padding: "4px 8px" }}>
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#1A1A1A",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {product.brand}
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            color: "#6B7280",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {product.variety}
-        </div>
-      </div>
 
       <style jsx>{`
         @media (hover: hover) {
           .ramen-tile:hover {
-            transform: ${isDragging ? "none" : "scale(1.05)"};
-            box-shadow: ${isDragging ? "0 1px 3px rgba(0,0,0,0.08)" : "0 4px 12px rgba(0,0,0,0.15)"};
+            transform: ${isDragging ? "none" : "scale(1.08)"};
+            box-shadow: ${isDragging ? "none" : "0 8px 24px rgba(0,0,0,0.15)"};
             transition: transform 150ms ease, box-shadow 150ms ease;
+            z-index: 1;
           }
         }
       `}</style>

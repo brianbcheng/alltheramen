@@ -27,12 +27,20 @@ export default function Home() {
       });
   }, []);
 
-  const dataMap = useMemo(() => {
+  // Only show products that have images, re-grid them compactly
+  const { dataMap, totalWithImages } = useMemo(() => {
+    const withImages = products.filter((p) => p.imagePath);
+    const COLS = 50;
     const map = new Map<string, RamenProduct>();
-    for (const product of products) {
-      map.set(`${product.gridX},${product.gridY}`, product);
+    for (let i = 0; i < withImages.length; i++) {
+      const p = {
+        ...withImages[i],
+        gridX: i % COLS,
+        gridY: Math.floor(i / COLS),
+      };
+      map.set(`${p.gridX},${p.gridY}`, p);
     }
-    return map;
+    return { dataMap: map, totalWithImages: withImages.length };
   }, [products]);
 
   if (loading) {
@@ -66,7 +74,7 @@ export default function Home() {
       <Header />
       <GridCanvas
         dataMap={dataMap}
-        totalProducts={products.length}
+        totalProducts={totalWithImages}
         onSelectProduct={setSelectedProduct}
       />
       <RamenModal

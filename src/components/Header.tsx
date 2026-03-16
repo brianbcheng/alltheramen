@@ -68,7 +68,7 @@ export default function Header() {
             lineHeight: 1.3,
           }}
         >
-          Explore 2,500+ instant noodles from around the world
+          Explore 490 instant noodles from around the world
         </p>
 
         {showTooltip && (
