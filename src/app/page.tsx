@@ -53,7 +53,7 @@ export default function Home() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#F5F3EF",
+          backgroundColor: "#FFFFFF",
           gap: 16,
         }}
       >

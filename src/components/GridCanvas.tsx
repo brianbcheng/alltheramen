@@ -135,7 +135,7 @@ export default function GridCanvas({
         width: "100vw",
         height: "100vh",
         overflow: "hidden",
-        backgroundColor: "#F5F3EF",
+        backgroundColor: "#FFFFFF",
         touchAction: "none",
         cursor: isDragging ? "grabbing" : "grab",
         position: "relative",
