@@ -49,8 +49,7 @@ const RamenTile = React.memo(function RamenTile({
         @media (hover: hover) {
           .ramen-tile:hover {
             transform: ${isDragging ? "none" : "scale(1.08)"};
-            box-shadow: ${isDragging ? "none" : "0 8px 24px rgba(0,0,0,0.15)"};
-            transition: transform 150ms ease, box-shadow 150ms ease;
+            transition: transform 150ms ease;
             z-index: 1;
           }
         }
