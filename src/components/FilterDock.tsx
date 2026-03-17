@@ -8,14 +8,10 @@ interface FilterDockProps {
   onSearchChange: (value: string) => void;
   selectedBrand: string | null;
   onBrandChange: (brand: string | null) => void;
-  selectedStyle: string | null;
-  onStyleChange: (style: string | null) => void;
   minRating: number;
   onRatingChange: (rating: number) => void;
   resultCount: number;
 }
-
-const STYLES = ["Pack", "Cup", "Bowl", "Tray", "Box"];
 
 export default function FilterDock({
   brands,
@@ -23,8 +19,6 @@ export default function FilterDock({
   onSearchChange,
   selectedBrand,
   onBrandChange,
-  selectedStyle,
-  onStyleChange,
   minRating,
   onRatingChange,
   resultCount,
@@ -229,31 +223,6 @@ export default function FilterDock({
               </div>
             </div>
           )}
-        </div>
-
-        <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
-
-        {/* Style filter (Pack/Cup/Bowl/Tray/Box) */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {STYLES.map((s) => (
-            <button
-              key={s}
-              onClick={() => onStyleChange(selectedStyle === s ? null : s)}
-              style={{
-                height: 32,
-                borderRadius: 8,
-                border: "none",
-                padding: "0 10px",
-                fontSize: 12,
-                backgroundColor: selectedStyle === s ? "#1A1A1A" : "#F9FAFB",
-                color: selectedStyle === s ? "#FFFFFF" : "#6B7280",
-                cursor: "pointer",
-                fontWeight: selectedStyle === s ? 600 : 400,
-              }}
-            >
-              {s}
-            </button>
-          ))}
         </div>
 
         <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />

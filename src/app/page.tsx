@@ -7,7 +7,7 @@ import RamenModal from "@/components/RamenModal";
 import FilterDock from "@/components/FilterDock";
 import type { RamenProduct } from "@/types";
 
-const GRID_COLS = 50;
+const MAX_COLS = 50;
 
 export default function Home() {
   const [products, setProducts] = useState<RamenProduct[]>([]);
@@ -19,7 +19,6 @@ export default function Home() {
   // Filter state
   const [search, setSearch] = useState("");
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [minRating, setMinRating] = useState(0);
 
   useEffect(() => {
@@ -51,8 +50,6 @@ export default function Home() {
       if (!p.imagePath) return false;
       if (minRating > 0 && p.stars < minRating) return false;
       if (selectedBrand && p.brand !== selectedBrand) return false;
-      if (selectedStyle && p.style.toLowerCase() !== selectedStyle.toLowerCase())
-        return false;
       if (
         search &&
         !p.brand.toLowerCase().includes(searchLower) &&
@@ -62,25 +59,24 @@ export default function Home() {
       return true;
     });
 
+    // Dynamically size grid: use fewer columns for small result sets
+    const cols = Math.min(MAX_COLS, Math.max(1, Math.ceil(Math.sqrt(filtered.length * 2))));
+
     const map = new Map<string, RamenProduct>();
     for (let i = 0; i < filtered.length; i++) {
       const p = {
         ...filtered[i],
-        gridX: i % GRID_COLS,
-        gridY: Math.floor(i / GRID_COLS),
+        gridX: i % cols,
+        gridY: Math.floor(i / cols),
       };
       map.set(`${p.gridX},${p.gridY}`, p);
     }
     return { dataMap: map, total: filtered.length };
-  }, [products, search, selectedBrand, selectedStyle, minRating]);
+  }, [products, search, selectedBrand, minRating]);
 
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
   const handleBrandChange = useCallback(
     (b: string | null) => setSelectedBrand(b),
-    []
-  );
-  const handleStyleChange = useCallback(
-    (s: string | null) => setSelectedStyle(s),
     []
   );
   const handleRatingChange = useCallback((r: number) => setMinRating(r), []);
@@ -124,8 +120,6 @@ export default function Home() {
         onSearchChange={handleSearchChange}
         selectedBrand={selectedBrand}
         onBrandChange={handleBrandChange}
-        selectedStyle={selectedStyle}
-        onStyleChange={handleStyleChange}
         minRating={minRating}
         onRatingChange={handleRatingChange}
         resultCount={total}
