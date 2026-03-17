@@ -8,10 +8,14 @@ interface FilterDockProps {
   onSearchChange: (value: string) => void;
   selectedBrand: string | null;
   onBrandChange: (brand: string | null) => void;
+  selectedStyle: string | null;
+  onStyleChange: (style: string | null) => void;
   minRating: number;
   onRatingChange: (rating: number) => void;
   resultCount: number;
 }
+
+const STYLES = ["Pack", "Cup", "Bowl", "Tray", "Box"];
 
 export default function FilterDock({
   brands,
@@ -19,6 +23,8 @@ export default function FilterDock({
   onSearchChange,
   selectedBrand,
   onBrandChange,
+  selectedStyle,
+  onStyleChange,
   minRating,
   onRatingChange,
   resultCount,
@@ -27,7 +33,6 @@ export default function FilterDock({
   const [brandSearch, setBrandSearch] = useState("");
   const brandRef = useRef<HTMLDivElement>(null);
 
-  // Close brand dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
@@ -44,7 +49,7 @@ export default function FilterDock({
     ? brands.filter((b) => b.toLowerCase().includes(brandSearch.toLowerCase()))
     : brands;
 
-  const ratingOptions = [0, 3, 3.5, 4, 4.5, 5];
+  const ratingOptions = [3, 3.5, 4, 4.5, 5];
 
   return (
     <div
@@ -67,14 +72,15 @@ export default function FilterDock({
           WebkitBackdropFilter: "blur(16px)",
           borderRadius: 16,
           padding: "10px 16px",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
+          boxShadow:
+            "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
         }}
       >
         {/* Search */}
         <div style={{ position: "relative" }}>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search ramen..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             style={{
@@ -105,10 +111,9 @@ export default function FilterDock({
           </svg>
         </div>
 
-        {/* Divider */}
         <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
 
-        {/* Brand filter */}
+        {/* Brand dropdown */}
         <div ref={brandRef} style={{ position: "relative" }}>
           <button
             onClick={() => setBrandOpen(!brandOpen)}
@@ -226,7 +231,31 @@ export default function FilterDock({
           )}
         </div>
 
-        {/* Divider */}
+        <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
+
+        {/* Style filter (Pack/Cup/Bowl/Tray/Box) */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {STYLES.map((s) => (
+            <button
+              key={s}
+              onClick={() => onStyleChange(selectedStyle === s ? null : s)}
+              style={{
+                height: 32,
+                borderRadius: 8,
+                border: "none",
+                padding: "0 10px",
+                fontSize: 12,
+                backgroundColor: selectedStyle === s ? "#1A1A1A" : "#F9FAFB",
+                color: selectedStyle === s ? "#FFFFFF" : "#6B7280",
+                cursor: "pointer",
+                fontWeight: selectedStyle === s ? 600 : 400,
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
         <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
 
         {/* Rating filter */}
@@ -242,13 +271,10 @@ export default function FilterDock({
                 border: "none",
                 padding: "0 8px",
                 fontSize: 12,
-                backgroundColor: minRating === r && r > 0 ? "#1A1A1A" : "#F9FAFB",
-                color: minRating === r && r > 0 ? "#FFFFFF" : "#6B7280",
+                backgroundColor: minRating === r ? "#1A1A1A" : "#F9FAFB",
+                color: minRating === r ? "#FFFFFF" : "#6B7280",
                 cursor: "pointer",
-                fontWeight: minRating === r && r > 0 ? 600 : 400,
-                display: r === 0 ? "none" : "flex",
-                alignItems: "center",
-                gap: 2,
+                fontWeight: minRating === r ? 600 : 400,
               }}
             >
               {r}+
@@ -256,12 +282,11 @@ export default function FilterDock({
           ))}
         </div>
 
-        {/* Divider */}
         <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
 
         {/* Result count */}
         <span style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}>
-          {resultCount} results
+          {resultCount}
         </span>
       </div>
     </div>

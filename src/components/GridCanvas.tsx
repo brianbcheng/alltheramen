@@ -62,15 +62,15 @@ export default function GridCanvas({
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // Set initial position once viewport is measured
+  // Center camera on grid — on first load and whenever grid size changes (filters)
   useEffect(() => {
-    if (viewportSize.width > 0 && !initialized.current) {
+    if (viewportSize.width > 0) {
       initialized.current = true;
       motionX.set(initialX);
       motionY.set(initialY);
       setRenderOffset({ x: initialX, y: initialY });
     }
-  }, [viewportSize.width, initialX, initialY, motionX, motionY]);
+  }, [viewportSize.width, totalProducts, initialX, initialY, motionX, motionY]);
 
   // Track motion values for virtualization via animation frame
   useAnimationFrame(() => {

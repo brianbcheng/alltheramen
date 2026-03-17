@@ -19,6 +19,7 @@ export default function Home() {
   // Filter state
   const [search, setSearch] = useState("");
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [minRating, setMinRating] = useState(0);
 
   useEffect(() => {
@@ -50,6 +51,8 @@ export default function Home() {
       if (!p.imagePath) return false;
       if (minRating > 0 && p.stars < minRating) return false;
       if (selectedBrand && p.brand !== selectedBrand) return false;
+      if (selectedStyle && p.style.toLowerCase() !== selectedStyle.toLowerCase())
+        return false;
       if (
         search &&
         !p.brand.toLowerCase().includes(searchLower) &&
@@ -69,11 +72,15 @@ export default function Home() {
       map.set(`${p.gridX},${p.gridY}`, p);
     }
     return { dataMap: map, total: filtered.length };
-  }, [products, search, selectedBrand, minRating]);
+  }, [products, search, selectedBrand, selectedStyle, minRating]);
 
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
   const handleBrandChange = useCallback(
     (b: string | null) => setSelectedBrand(b),
+    []
+  );
+  const handleStyleChange = useCallback(
+    (s: string | null) => setSelectedStyle(s),
     []
   );
   const handleRatingChange = useCallback((r: number) => setMinRating(r), []);
@@ -117,6 +124,8 @@ export default function Home() {
         onSearchChange={handleSearchChange}
         selectedBrand={selectedBrand}
         onBrandChange={handleBrandChange}
+        selectedStyle={selectedStyle}
+        onStyleChange={handleStyleChange}
         minRating={minRating}
         onRatingChange={handleRatingChange}
         resultCount={total}
