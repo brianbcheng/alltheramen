@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 from PIL import Image
-from rembg import remove
+from rembg import remove, new_session
 from tqdm import tqdm
 
 TARGET_SIZE = 400
@@ -52,7 +52,7 @@ def save_manifest(processed):
 def process_image(path):
     try:
         img = Image.open(path)
-        result = remove(img)
+        result = remove(img, alpha_matting=True, alpha_matting_foreground_threshold=240, alpha_matting_background_threshold=20)
 
         white = Image.new("RGB", result.size, (255, 255, 255))
         white.paste(result, mask=result.split()[3])
