@@ -199,33 +199,6 @@ export default function Home() {
 
   return (
     <>
-      {/* Floating logo */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        style={{
-          position: "fixed",
-          top: 20,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 30,
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 28,
-            color: "#1A1A1A",
-            textShadow: "0 1px 8px rgba(255,255,255,0.8)",
-          }}
-        >
-          alltheramen
-        </span>
-      </motion.div>
-
       <GridCanvas
         dataMap={dataMap}
         totalProducts={total}

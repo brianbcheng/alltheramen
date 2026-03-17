@@ -278,21 +278,23 @@ export default function FilterDock({
   };
 
   return (
-    <motion.div
-      initial={{ y: 40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+    <div
       style={{
         position: "fixed",
         bottom: 24,
-        left: "50%",
-        transform: "translateX(-50%)",
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
         zIndex: 40,
-        pointerEvents: "auto",
+        pointerEvents: "none",
       }}
     >
-      <div
+      <motion.div
         ref={dockRef}
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
         style={{
           display: "flex",
           alignItems: "center",
@@ -304,9 +306,40 @@ export default function FilterDock({
           padding: "10px 16px",
           boxShadow:
             "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
-          transition: "width 0.2s ease",
+          pointerEvents: "auto",
+          position: "relative",
         }}
       >
+        {/* Center notch with logo */}
+        <div
+          style={{
+            position: "absolute",
+            top: -30,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            borderRadius: "12px 12px 0 0",
+            padding: "6px 24px 2px",
+            boxShadow:
+              "0 -4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06)",
+            clipPath: "inset(-20px -1px 0px -1px)",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontFamily: "var(--font-display)",
+              color: "#1A1A1A",
+              whiteSpace: "nowrap",
+              userSelect: "none",
+            }}
+          >
+            alltheramen
+          </span>
+        </div>
+
         {/* Search icon / expanded search bar */}
         {searchFocused ? (
           <div
@@ -650,7 +683,7 @@ export default function FilterDock({
             </span>
           </>
         )}
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
