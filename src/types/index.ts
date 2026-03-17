@@ -8,6 +8,7 @@ export interface RamenProduct {
   stars: number;
   topTen: string | null;
   imagePath: string | null;
+  reviewUrl: string | null;
   gridX: number;
   gridY: number;
 }

@@ -8,7 +8,8 @@ export function useGridVirtualization(
   viewportWidth: number,
   viewportHeight: number,
   maxRow: number,
-  dataMap: Map<string, RamenProduct>
+  dataMap: Map<string, RamenProduct>,
+  cols: number
 ) {
   const visibleTiles = useMemo(() => {
     if (viewportWidth === 0 || viewportHeight === 0) return [];
@@ -18,7 +19,8 @@ export function useGridVirtualization(
       offsetY,
       viewportWidth,
       viewportHeight,
-      maxRow
+      maxRow,
+      cols
     );
 
     const tiles: { product: RamenProduct; x: number; y: number }[] = [];
@@ -37,7 +39,7 @@ export function useGridVirtualization(
     }
 
     return tiles;
-  }, [offsetX, offsetY, viewportWidth, viewportHeight, maxRow, dataMap]);
+  }, [offsetX, offsetY, viewportWidth, viewportHeight, maxRow, dataMap, cols]);
 
   return visibleTiles;
 }

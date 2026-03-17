@@ -44,7 +44,7 @@ export default function Home() {
   }, [products]);
 
   // Filter and re-grid products
-  const { dataMap, total } = useMemo(() => {
+  const { dataMap, total, cols: gridCols } = useMemo(() => {
     const searchLower = search.toLowerCase();
     const filtered = products.filter((p) => {
       if (!p.imagePath) return false;
@@ -71,7 +71,7 @@ export default function Home() {
       };
       map.set(`${p.gridX},${p.gridY}`, p);
     }
-    return { dataMap: map, total: filtered.length };
+    return { dataMap: map, total: filtered.length, cols };
   }, [products, search, selectedBrand, minRating]);
 
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
@@ -112,6 +112,7 @@ export default function Home() {
       <GridCanvas
         dataMap={dataMap}
         totalProducts={total}
+        gridCols={gridCols}
         onSelectProduct={setSelectedProduct}
       />
       <FilterDock

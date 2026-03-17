@@ -3,19 +3,21 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useAnimationFrame } from "framer-motion";
 import { useGridVirtualization } from "@/hooks/useGridVirtualization";
-import { CELL_WIDTH, CELL_HEIGHT, GRID_COLS } from "@/lib/grid";
+import { CELL_WIDTH, CELL_HEIGHT } from "@/lib/grid";
 import RamenTile from "./RamenTile";
 import type { RamenProduct } from "@/types";
 
 interface GridCanvasProps {
   dataMap: Map<string, RamenProduct>;
   totalProducts: number;
+  gridCols: number;
   onSelectProduct: (product: RamenProduct) => void;
 }
 
 export default function GridCanvas({
   dataMap,
   totalProducts,
+  gridCols,
   onSelectProduct,
 }: GridCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,8 +32,8 @@ export default function GridCanvas({
     time: number;
   } | null>(null);
 
-  const maxRow = Math.ceil(totalProducts / GRID_COLS) - 1;
-  const actualCols = maxRow === 0 ? totalProducts : GRID_COLS;
+  const maxRow = Math.max(0, Math.ceil(totalProducts / gridCols) - 1);
+  const actualCols = Math.min(gridCols, totalProducts);
   const gridPixelWidth = actualCols * CELL_WIDTH;
   const gridPixelHeight = (maxRow + 1) * CELL_HEIGHT;
 
@@ -94,7 +96,8 @@ export default function GridCanvas({
     viewportSize.width,
     viewportSize.height,
     maxRow,
-    dataMap
+    dataMap,
+    gridCols
   );
 
   // Drag constraints: don't let user pan beyond the grid

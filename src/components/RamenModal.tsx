@@ -276,9 +276,54 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 )}
               </div>
 
+              {product.reviewUrl && (
+                <a
+                  href={product.reviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    marginTop: 20,
+                    padding: "10px 16px",
+                    borderRadius: 10,
+                    backgroundColor: "#1A1A1A",
+                    color: "#FFFFFF",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    textDecoration: "none",
+                    transition: "opacity 0.15s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.opacity = "0.85")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.opacity = "1")
+                  }
+                >
+                  Read Full Review
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
+              )}
+
               <div
                 style={{
-                  marginTop: 20,
+                  marginTop: product.reviewUrl ? 12 : 20,
                   fontSize: 11,
                   color: "#9CA3AF",
                   textAlign: "center",

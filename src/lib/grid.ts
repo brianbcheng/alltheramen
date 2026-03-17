@@ -10,11 +10,12 @@ export function getVisibleRange(
   offsetY: number,
   viewportWidth: number,
   viewportHeight: number,
-  maxRow: number
+  maxRow: number,
+  cols: number = GRID_COLS
 ) {
   const minCol = Math.max(0, Math.floor(-offsetX / CELL_WIDTH) - 1);
   const maxCol = Math.min(
-    GRID_COLS - 1,
+    cols - 1,
     Math.ceil((-offsetX + viewportWidth) / CELL_WIDTH) + 1
   );
   const minRow = Math.max(0, Math.floor(-offsetY / CELL_HEIGHT) - 1);

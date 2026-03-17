@@ -23,6 +23,7 @@ interface RamenProduct {
   stars: number;
   topTen: string | null;
   imagePath: string | null;
+  reviewUrl: string | null;
   gridX: number;
   gridY: number;
 }
@@ -37,7 +38,7 @@ const manifestPath = path.resolve(
 const outPath = path.resolve(__dirname, "../public/data/ramen.json");
 
 // Load image manifest if it exists
-let imageManifest: Record<string, { status: string; filename?: string }> = {};
+let imageManifest: Record<string, { status: string; filename?: string; review_url?: string | null }> = {};
 if (fs.existsSync(manifestPath)) {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
   imageManifest = manifest.images || {};
@@ -88,6 +89,7 @@ const products: RamenProduct[] = filtered.map((row, index) => {
       imageManifest[String(reviewNumber)]?.status === "found"
         ? `/images/ramen/${reviewNumber}.webp`
         : null,
+    reviewUrl: imageManifest[String(reviewNumber)]?.review_url || null,
     gridX: index % GRID_COLS,
     gridY: Math.floor(index / GRID_COLS),
   };
