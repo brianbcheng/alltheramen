@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { motion, useMotionValue, useAnimationFrame } from "framer-motion";
+import { motion, useMotionValue, useAnimationFrame, animate } from "framer-motion";
 import { useGridVirtualization } from "@/hooks/useGridVirtualization";
 import { CELL_WIDTH, CELL_HEIGHT } from "@/lib/grid";
 import RamenTile from "./RamenTile";
@@ -67,10 +67,17 @@ export default function GridCanvas({
   // Center camera on grid — on first load and whenever grid size changes (filters)
   useEffect(() => {
     if (viewportSize.width > 0) {
-      initialized.current = true;
-      motionX.set(initialX);
-      motionY.set(initialY);
-      setRenderOffset({ x: initialX, y: initialY });
+      if (!initialized.current) {
+        // First load: jump instantly
+        initialized.current = true;
+        motionX.set(initialX);
+        motionY.set(initialY);
+        setRenderOffset({ x: initialX, y: initialY });
+      } else {
+        // Filter change: animate smoothly
+        animate(motionX, initialX, { type: "spring", stiffness: 200, damping: 30 });
+        animate(motionY, initialY, { type: "spring", stiffness: 200, damping: 30 });
+      }
     }
   }, [viewportSize.width, totalProducts, initialX, initialY, motionX, motionY]);
 
@@ -138,7 +145,7 @@ export default function GridCanvas({
         width: "100vw",
         height: "100vh",
         overflow: "hidden",
-        backgroundColor: "#FFFFFF",
+        background: "radial-gradient(ellipse at center, #FFFFFF 0%, #FAFAFA 100%)",
         touchAction: "none",
         cursor: isDragging ? "grabbing" : "grab",
         position: "relative",

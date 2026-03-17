@@ -1,46 +1,91 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { FlavorProfile } from "@/lib/flavors";
 
 interface FilterDockProps {
   brands: string[];
+  flavors: FlavorProfile[];
   search: string;
   onSearchChange: (value: string) => void;
-  selectedBrand: string | null;
-  onBrandChange: (brand: string | null) => void;
-  minRating: number;
-  onRatingChange: (rating: number) => void;
+  selectedBrands: Set<string>;
+  onToggleBrand: (brand: string) => void;
+  onClearBrands: () => void;
+  selectedRatings: Set<number>;
+  onToggleRating: (rating: number) => void;
+  onClearRatings: () => void;
+  selectedFlavors: Set<string>;
+  onToggleFlavor: (flavor: string) => void;
+  onClearFlavors: () => void;
   resultCount: number;
 }
 
+type DropdownId = "brand" | "rating" | "flavor" | null;
+
 export default function FilterDock({
   brands,
+  flavors,
   search,
   onSearchChange,
-  selectedBrand,
-  onBrandChange,
-  minRating,
-  onRatingChange,
+  selectedBrands,
+  onToggleBrand,
+  onClearBrands,
+  selectedRatings,
+  onToggleRating,
+  onClearRatings,
+  selectedFlavors,
+  onToggleFlavor,
+  onClearFlavors,
   resultCount,
 }: FilterDockProps) {
-  const [brandOpen, setBrandOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownId>(null);
   const [brandSearch, setBrandSearch] = useState("");
-  const brandRef = useRef<HTMLDivElement>(null);
-
-  const [ratingOpen, setRatingOpen] = useState(false);
-  const ratingRef = useRef<HTMLDivElement>(null);
 
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
+  const ratingRef = useRef<HTMLDivElement>(null);
+  const flavorRef = useRef<HTMLDivElement>(null);
 
-  const ratingOptions = [3, 3.5, 4, 4.5, 5];
-  const ratingLabel = minRating > 0 ? `${minRating}+ Stars` : "Rating";
+  const ratingOptions = [1, 2, 3, 4, 5];
 
-  // Global hotkeys: / for search, b for brand, r for rating
+  // Labels
+  const brandLabel =
+    selectedBrands.size === 0
+      ? "Brand"
+      : selectedBrands.size === 1
+        ? Array.from(selectedBrands)[0]
+        : `${selectedBrands.size} Brands`;
+
+  const ratingLabel =
+    selectedRatings.size === 0
+      ? "Rating"
+      : selectedRatings.size === 1
+        ? `${Array.from(selectedRatings)[0]} Stars`
+        : `${selectedRatings.size} Ratings`;
+
+  const flavorLabel =
+    selectedFlavors.size === 0
+      ? "Flavor"
+      : selectedFlavors.size === 1
+        ? flavors.find((f) => f.id === Array.from(selectedFlavors)[0])?.label ||
+          "Flavor"
+        : `${selectedFlavors.size} Flavors`;
+
+  const toggleDropdown = useCallback(
+    (id: DropdownId) => {
+      setOpenDropdown((prev) => (prev === id ? null : id));
+      setSearchFocused(false);
+      if (id !== "brand") setBrandSearch("");
+    },
+    []
+  );
+
+  // Global hotkeys
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Ignore when typing in an input
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
@@ -49,36 +94,52 @@ export default function FilterDock({
         openSearch();
       } else if (e.key === "b" || e.key === "B") {
         e.preventDefault();
-        setBrandOpen((prev) => !prev);
-        setRatingOpen(false);
-        setSearchFocused(false);
+        toggleDropdown("brand");
       } else if (e.key === "r" || e.key === "R") {
         e.preventDefault();
-        setRatingOpen((prev) => !prev);
-        setBrandOpen(false);
-        setSearchFocused(false);
+        toggleDropdown("rating");
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        toggleDropdown("flavor");
       }
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Close dropdowns on outside click
+  // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
-        setBrandOpen(false);
+      const target = e.target as Node;
+      if (
+        openDropdown === "brand" &&
+        brandRef.current &&
+        !brandRef.current.contains(target)
+      ) {
+        setOpenDropdown(null);
+        setBrandSearch("");
       }
-      if (ratingRef.current && !ratingRef.current.contains(e.target as Node)) {
-        setRatingOpen(false);
+      if (
+        openDropdown === "rating" &&
+        ratingRef.current &&
+        !ratingRef.current.contains(target)
+      ) {
+        setOpenDropdown(null);
+      }
+      if (
+        openDropdown === "flavor" &&
+        flavorRef.current &&
+        !flavorRef.current.contains(target)
+      ) {
+        setOpenDropdown(null);
       }
     }
-    if (brandOpen || ratingOpen) {
+    if (openDropdown) {
       document.addEventListener("mousedown", handleClick);
       return () => document.removeEventListener("mousedown", handleClick);
     }
-  }, [brandOpen, ratingOpen]);
+  }, [openDropdown]);
 
   // Close search on outside click
   useEffect(() => {
@@ -93,7 +154,6 @@ export default function FilterDock({
     }
   }, [searchFocused, search]);
 
-  // Close search on Escape
   const handleSearchKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -107,17 +167,20 @@ export default function FilterDock({
 
   const openSearch = () => {
     setSearchFocused(true);
-    setBrandOpen(false);
-    setRatingOpen(false);
-    // Focus after the expansion animation starts
+    setOpenDropdown(null);
     requestAnimationFrame(() => searchInputRef.current?.focus());
   };
 
   const showFilters = !searchFocused;
 
+  const filteredBrands = brandSearch
+    ? brands.filter((b) =>
+        b.toLowerCase().includes(brandSearch.toLowerCase())
+      )
+    : brands;
+
   const kbdStyle: React.CSSProperties = {
     fontSize: 9,
-    fontFamily: "system-ui, sans-serif",
     fontWeight: 500,
     lineHeight: 1,
     padding: "2px 4px",
@@ -135,12 +198,90 @@ export default function FilterDock({
     border: "1px solid rgba(255,255,255,0.15)",
   };
 
-  const filteredBrands = brandSearch
-    ? brands.filter((b) => b.toLowerCase().includes(brandSearch.toLowerCase()))
-    : brands;
+  const checkmark = (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#1A1A1A"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ flexShrink: 0 }}
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+
+  const dropdownPanel: React.CSSProperties = {
+    position: "absolute",
+    bottom: 44,
+    left: 0,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    boxShadow: "0 8px 32px rgba(0,0,0,0.16)",
+    border: "1px solid #E5E7EB",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+  };
+
+  const optionStyle = (isSelected: boolean): React.CSSProperties => ({
+    width: "100%",
+    padding: "8px 12px",
+    fontSize: 12,
+    border: "none",
+    backgroundColor: isSelected ? "#F3F4F6" : "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+    color: "#1A1A1A",
+    fontWeight: isSelected ? 600 : 400,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  });
+
+  const chevron = (
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+
+  const btnStyle = (active: boolean): React.CSSProperties => ({
+    height: 36,
+    borderRadius: 10,
+    border: "1px solid #E5E7EB",
+    padding: "0 12px",
+    fontSize: 13,
+    backgroundColor: active ? "#1A1A1A" : "#F9FAFB",
+    color: active ? "#FFFFFF" : "#6B7280",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    whiteSpace: "nowrap",
+  });
+
+  const dropdownMotion = {
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 8 },
+    transition: { duration: 0.15, ease: "easeOut" as const },
+  };
 
   return (
-    <div
+    <motion.div
+      initial={{ y: 40, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
       style={{
         position: "fixed",
         bottom: 24,
@@ -164,42 +305,8 @@ export default function FilterDock({
           boxShadow:
             "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
           transition: "width 0.2s ease",
-          position: "relative",
         }}
       >
-        {/* Center notch with logo */}
-        <div
-          style={{
-            position: "absolute",
-            top: -28,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "rgba(255,255,255,0.92)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            borderRadius: "10px 10px 0 0",
-            padding: "5px 14px 2px",
-            boxShadow:
-              "0 -4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06)",
-            clipPath: "inset(-20px -1px 0px -1px)",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              color: "#1A1A1A",
-              textTransform: "lowercase",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              whiteSpace: "nowrap",
-              userSelect: "none",
-            }}
-          >
-            alltheramen
-          </span>
-        </div>
-
         {/* Search icon / expanded search bar */}
         {searchFocused ? (
           <div
@@ -321,235 +428,214 @@ export default function FilterDock({
               style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }}
             />
 
-            {/* Brand dropdown */}
+            {/* Brand dropdown — multi-select */}
             <div ref={brandRef} style={{ position: "relative" }}>
               <button
-                onClick={() => {
-                  setBrandOpen(!brandOpen);
-                  setRatingOpen(false);
-                }}
-                style={{
-                  height: 36,
-                  borderRadius: 10,
-                  border: "1px solid #E5E7EB",
-                  padding: "0 12px",
-                  fontSize: 13,
-                  backgroundColor: selectedBrand ? "#1A1A1A" : "#F9FAFB",
-                  color: selectedBrand ? "#FFFFFF" : "#6B7280",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  whiteSpace: "nowrap",
-                }}
+                onClick={() => toggleDropdown("brand")}
+                style={btnStyle(selectedBrands.size > 0)}
               >
-                {selectedBrand || "Brand"}
-                <kbd style={selectedBrand ? kbdActiveStyle : kbdStyle}>B</kbd>
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+                {brandLabel}
+                <kbd
+                  style={
+                    selectedBrands.size > 0 ? kbdActiveStyle : kbdStyle
+                  }
                 >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
+                  B
+                </kbd>
+                {chevron}
               </button>
 
-              {brandOpen && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 44,
-                    left: 0,
-                    width: 220,
-                    maxHeight: 280,
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: 12,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.16)",
-                    border: "1px solid #E5E7EB",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <div style={{ padding: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="Filter brands..."
-                      value={brandSearch}
-                      onChange={(e) => setBrandSearch(e.target.value)}
-                      autoFocus
-                      style={{
-                        width: "100%",
-                        height: 32,
-                        borderRadius: 8,
-                        border: "1px solid #E5E7EB",
-                        padding: "0 10px",
-                        fontSize: 12,
-                        outline: "none",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
-                  <div style={{ overflowY: "auto", maxHeight: 230 }}>
-                    <button
-                      onClick={() => {
-                        onBrandChange(null);
-                        setBrandOpen(false);
-                        setBrandSearch("");
-                      }}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        fontSize: 12,
-                        border: "none",
-                        backgroundColor: !selectedBrand
-                          ? "#F3F4F6"
-                          : "transparent",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        color: "#1A1A1A",
-                        fontWeight: !selectedBrand ? 600 : 400,
-                      }}
-                    >
-                      All Brands
-                    </button>
-                    {filteredBrands.map((brand) => (
-                      <button
-                        key={brand}
-                        onClick={() => {
-                          onBrandChange(brand);
-                          setBrandOpen(false);
-                          setBrandSearch("");
-                        }}
+              <AnimatePresence>
+                {openDropdown === "brand" && (
+                  <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 220, maxHeight: 280 }}>
+                    <div style={{ padding: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="Filter brands..."
+                        value={brandSearch}
+                        onChange={(e) => setBrandSearch(e.target.value)}
+                        autoFocus
                         style={{
                           width: "100%",
-                          padding: "8px 12px",
+                          height: 32,
+                          borderRadius: 8,
+                          border: "1px solid #E5E7EB",
+                          padding: "0 10px",
                           fontSize: 12,
-                          border: "none",
-                          backgroundColor:
-                            selectedBrand === brand
-                              ? "#F3F4F6"
-                              : "transparent",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          color: "#1A1A1A",
-                          fontWeight: selectedBrand === brand ? 600 : 400,
+                          outline: "none",
+                          boxSizing: "border-box",
                         }}
-                      >
-                        {brand}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      />
+                    </div>
+                    <div style={{ overflowY: "auto", maxHeight: 230 }}>
+                      {selectedBrands.size > 0 && (
+                        <button
+                          onClick={() => {
+                            onClearBrands();
+                            setBrandSearch("");
+                          }}
+                          style={{
+                            ...optionStyle(false),
+                            color: "#E63946",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      {filteredBrands.map((brand) => {
+                        const selected = selectedBrands.has(brand);
+                        return (
+                          <button
+                            key={brand}
+                            onClick={() => onToggleBrand(brand)}
+                            style={optionStyle(selected)}
+                          >
+                            <span
+                              style={{
+                                width: 14,
+                                display: "flex",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {selected ? checkmark : null}
+                            </span>
+                            {brand}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div
               style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }}
             />
 
-            {/* Rating dropdown */}
+            {/* Rating dropdown — multi-select */}
             <div ref={ratingRef} style={{ position: "relative" }}>
               <button
-                onClick={() => {
-                  setRatingOpen(!ratingOpen);
-                  setBrandOpen(false);
-                }}
-                style={{
-                  height: 36,
-                  borderRadius: 10,
-                  border: "1px solid #E5E7EB",
-                  padding: "0 12px",
-                  fontSize: 13,
-                  backgroundColor: minRating > 0 ? "#1A1A1A" : "#F9FAFB",
-                  color: minRating > 0 ? "#FFFFFF" : "#6B7280",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  whiteSpace: "nowrap",
-                }}
+                onClick={() => toggleDropdown("rating")}
+                style={btnStyle(selectedRatings.size > 0)}
               >
                 {ratingLabel}
-                <kbd style={minRating > 0 ? kbdActiveStyle : kbdStyle}>R</kbd>
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+                <kbd
+                  style={
+                    selectedRatings.size > 0 ? kbdActiveStyle : kbdStyle
+                  }
                 >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
+                  R
+                </kbd>
+                {chevron}
               </button>
 
-              {ratingOpen && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 44,
-                    left: 0,
-                    width: 140,
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: 12,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.16)",
-                    border: "1px solid #E5E7EB",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
+              <AnimatePresence>
+                {openDropdown === "rating" && (
+                  <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 150 }}>
+                    <div style={{ overflowY: "auto" }}>
+                      {selectedRatings.size > 0 && (
+                        <button
+                          onClick={onClearRatings}
+                          style={{
+                            ...optionStyle(false),
+                            color: "#E63946",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      {ratingOptions.map((r) => {
+                        const selected = selectedRatings.has(r);
+                        return (
+                          <button
+                            key={r}
+                            onClick={() => onToggleRating(r)}
+                            style={optionStyle(selected)}
+                          >
+                            <span
+                              style={{
+                                width: 14,
+                                display: "flex",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {selected ? checkmark : null}
+                            </span>
+                            {r === 5 ? "5 Stars" : `${r}–${r}.99 Stars`}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div
+              style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }}
+            />
+
+            {/* Flavor dropdown — multi-select (AND logic) */}
+            <div ref={flavorRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => toggleDropdown("flavor")}
+                style={btnStyle(selectedFlavors.size > 0)}
+              >
+                {flavorLabel}
+                <kbd
+                  style={
+                    selectedFlavors.size > 0 ? kbdActiveStyle : kbdStyle
+                  }
                 >
-                  <div style={{ overflowY: "auto" }}>
-                    <button
-                      onClick={() => {
-                        onRatingChange(0);
-                        setRatingOpen(false);
-                      }}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        fontSize: 12,
-                        border: "none",
-                        backgroundColor:
-                          minRating === 0 ? "#F3F4F6" : "transparent",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        color: "#1A1A1A",
-                        fontWeight: minRating === 0 ? 600 : 400,
-                      }}
-                    >
-                      Any Rating
-                    </button>
-                    {ratingOptions.map((r) => (
-                      <button
-                        key={r}
-                        onClick={() => {
-                          onRatingChange(r);
-                          setRatingOpen(false);
-                        }}
-                        style={{
-                          width: "100%",
-                          padding: "8px 12px",
-                          fontSize: 12,
-                          border: "none",
-                          backgroundColor:
-                            minRating === r ? "#F3F4F6" : "transparent",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          color: "#1A1A1A",
-                          fontWeight: minRating === r ? 600 : 400,
-                        }}
-                      >
-                        {r}+ Stars
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                  F
+                </kbd>
+                {chevron}
+              </button>
+
+              <AnimatePresence>
+                {openDropdown === "flavor" && (
+                  <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 170, maxHeight: 320 }}>
+                    <div style={{ overflowY: "auto", maxHeight: 300 }}>
+                      {selectedFlavors.size > 0 && (
+                        <button
+                          onClick={onClearFlavors}
+                          style={{
+                            ...optionStyle(false),
+                            color: "#E63946",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      {flavors.map((f) => {
+                        const selected = selectedFlavors.has(f.id);
+                        return (
+                          <button
+                            key={f.id}
+                            onClick={() => onToggleFlavor(f.id)}
+                            style={optionStyle(selected)}
+                          >
+                            <span
+                              style={{
+                                width: 14,
+                                display: "flex",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {selected ? checkmark : null}
+                            </span>
+                            {f.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div
@@ -565,6 +651,6 @@ export default function FilterDock({
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

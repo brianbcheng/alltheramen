@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Permanent_Marker, Nunito } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const permanentMarker = Permanent_Marker({
+  variable: "--font-display",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const nunito = Nunito({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
@@ -26,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${permanentMarker.variable} ${nunito.variable} antialiased`}>{children}</body>
     </html>
   );
 }

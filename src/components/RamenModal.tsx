@@ -162,17 +162,24 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
 
             {/* Details */}
             <div style={{ padding: 24 }}>
-              <h2
+              <motion.h2
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.1 }}
                 style={{
                   fontSize: 24,
-                  fontWeight: 700,
+                  fontWeight: 400,
                   color: "#1A1A1A",
                   margin: 0,
+                  fontFamily: "var(--font-display)",
                 }}
               >
                 {product.brand}
-              </h2>
-              <p
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.15 }}
                 style={{
                   fontSize: 18,
                   color: "#6B7280",
@@ -180,7 +187,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 }}
               >
                 {product.variety}
-              </p>
+              </motion.p>
 
               <div
                 style={{
@@ -190,7 +197,10 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 }}
               />
 
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.2 }}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
@@ -274,7 +284,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                     </span>
                   </div>
                 )}
-              </div>
+              </motion.div>
 
               {product.reviewUrl && (
                 <a
@@ -294,14 +304,16 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                     fontSize: 13,
                     fontWeight: 500,
                     textDecoration: "none",
-                    transition: "opacity 0.15s",
+                    transition: "transform 0.15s ease, opacity 0.15s ease",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.opacity = "0.85")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.opacity = "1")
-                  }
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.02)";
+                    e.currentTarget.style.opacity = "0.9";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.opacity = "1";
+                  }}
                 >
                   Read Full Review
                   <svg
