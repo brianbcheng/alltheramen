@@ -336,7 +336,7 @@ export default function FilterDock({
               userSelect: "none",
             }}
           >
-            alltheramen
+            infinite ramen
           </span>
         </div>
 

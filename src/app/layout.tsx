@@ -14,11 +14,11 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "The Infinite Ramen Grid — Explore 2,500+ Instant Noodles",
+  title: "Infinite Ramen — Explore 2,500+ Instant Noodles",
   description:
     "An interactive, explorable 2D grid of instant ramen products from around the world.",
   openGraph: {
-    title: "The Infinite Ramen Grid",
+    title: "Infinite Ramen",
     description:
       "Explore 2,500+ instant noodles from around the world on an interactive grid.",
     type: "website",
