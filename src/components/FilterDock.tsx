@@ -7,6 +7,7 @@ import type { FlavorProfile } from "@/lib/flavors";
 interface FilterDockProps {
   brands: string[];
   flavors: FlavorProfile[];
+  countries: string[];
   search: string;
   onSearchChange: (value: string) => void;
   selectedBrands: Set<string>;
@@ -18,14 +19,18 @@ interface FilterDockProps {
   selectedFlavors: Set<string>;
   onToggleFlavor: (flavor: string) => void;
   onClearFlavors: () => void;
+  selectedCountries: Set<string>;
+  onToggleCountry: (country: string) => void;
+  onClearCountries: () => void;
   resultCount: number;
 }
 
-type DropdownId = "brand" | "rating" | "flavor" | null;
+type DropdownId = "brand" | "rating" | "flavor" | "country" | null;
 
 export default function FilterDock({
   brands,
   flavors,
+  countries,
   search,
   onSearchChange,
   selectedBrands,
@@ -37,10 +42,17 @@ export default function FilterDock({
   selectedFlavors,
   onToggleFlavor,
   onClearFlavors,
+  selectedCountries,
+  onToggleCountry,
+  onClearCountries,
   resultCount,
 }: FilterDockProps) {
   const [openDropdown, setOpenDropdown] = useState<DropdownId>(null);
   const [brandSearch, setBrandSearch] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showInfo, setShowInfo] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [searchFocused, setSearchFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +60,20 @@ export default function FilterDock({
   const brandRef = useRef<HTMLDivElement>(null);
   const ratingRef = useRef<HTMLDivElement>(null);
   const flavorRef = useRef<HTMLDivElement>(null);
+  const countryRef = useRef<HTMLDivElement>(null);
+  const filterPanelRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const activeFilterCount =
+    selectedBrands.size + selectedRatings.size + selectedFlavors.size + selectedCountries.size;
 
   const ratingOptions = [1, 2, 3, 4, 5];
 
@@ -74,11 +100,19 @@ export default function FilterDock({
           "Flavor"
         : `${selectedFlavors.size} Flavors`;
 
+  const countryLabel =
+    selectedCountries.size === 0
+      ? "Country"
+      : selectedCountries.size === 1
+        ? Array.from(selectedCountries)[0]
+        : `${selectedCountries.size} Countries`;
+
   const toggleDropdown = useCallback(
     (id: DropdownId) => {
       setOpenDropdown((prev) => (prev === id ? null : id));
       setSearchFocused(false);
       if (id !== "brand") setBrandSearch("");
+      if (id !== "country") setCountrySearch("");
     },
     []
   );
@@ -101,6 +135,9 @@ export default function FilterDock({
       } else if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         toggleDropdown("flavor");
+      } else if (e.key === "c" || e.key === "C") {
+        e.preventDefault();
+        toggleDropdown("country");
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -134,12 +171,42 @@ export default function FilterDock({
       ) {
         setOpenDropdown(null);
       }
+      if (
+        openDropdown === "country" &&
+        countryRef.current &&
+        !countryRef.current.contains(target)
+      ) {
+        setOpenDropdown(null);
+        setCountrySearch("");
+      }
     }
     if (openDropdown) {
       document.addEventListener("mousedown", handleClick);
       return () => document.removeEventListener("mousedown", handleClick);
     }
   }, [openDropdown]);
+
+  // Close mobile filter panel on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        filterPanelRef.current &&
+        !filterPanelRef.current.contains(target) &&
+        dockRef.current &&
+        !dockRef.current.contains(target)
+      ) {
+        setFiltersExpanded(false);
+        setOpenDropdown(null);
+        setBrandSearch("");
+        setCountrySearch("");
+      }
+    }
+    if (filtersExpanded) {
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }
+  }, [filtersExpanded]);
 
   // Close search on outside click
   useEffect(() => {
@@ -171,13 +238,19 @@ export default function FilterDock({
     requestAnimationFrame(() => searchInputRef.current?.focus());
   };
 
-  const showFilters = !searchFocused;
+  const showFilters = !searchFocused && (!isMobile || filtersExpanded);
 
   const filteredBrands = brandSearch
     ? brands.filter((b) =>
         b.toLowerCase().includes(brandSearch.toLowerCase())
       )
     : brands;
+
+  const filteredCountries = countrySearch
+    ? countries.filter((c) =>
+        c.toLowerCase().includes(countrySearch.toLowerCase())
+      )
+    : countries;
 
   const kbdStyle: React.CSSProperties = {
     fontSize: 9,
@@ -310,13 +383,14 @@ export default function FilterDock({
           position: "relative",
         }}
       >
-        {/* Center notch with logo */}
+        {/* Center notch with logo — hidden on mobile */}
         <div
           style={{
             position: "absolute",
             top: -30,
             left: "50%",
             transform: "translateX(-50%)",
+            display: isMobile ? "none" : "block",
             backgroundColor: "rgba(255,255,255,0.92)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
@@ -340,6 +414,224 @@ export default function FilterDock({
           </span>
         </div>
 
+        {/* Mobile filter panel — floats above dock */}
+        <AnimatePresence>
+          {isMobile && filtersExpanded && !searchFocused && (
+            <motion.div
+              ref={filterPanelRef}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              style={{
+                position: "absolute",
+                bottom: 56,
+                left: 0,
+                right: 0,
+                backgroundColor: "rgba(255,255,255,0.95)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                borderRadius: 14,
+                padding: "10px 12px",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
+              {/* Brand */}
+              <div ref={brandRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => toggleDropdown("brand")}
+                  style={btnStyle(selectedBrands.size > 0)}
+                >
+                  {brandLabel}
+                  {chevron}
+                </button>
+                <AnimatePresence>
+                  {openDropdown === "brand" && (
+                    <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 220, maxHeight: 280 }}>
+                      <div style={{ padding: 8 }}>
+                        <input
+                          type="text"
+                          placeholder="Filter brands..."
+                          value={brandSearch}
+                          onChange={(e) => setBrandSearch(e.target.value)}
+                          autoFocus
+                          style={{
+                            width: "100%",
+                            height: 32,
+                            borderRadius: 8,
+                            border: "1px solid #E5E7EB",
+                            padding: "0 10px",
+                            fontSize: 12,
+                            outline: "none",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                      <div style={{ overflowY: "auto", maxHeight: 230 }}>
+                        {selectedBrands.size > 0 && (
+                          <button
+                            onClick={() => { onClearBrands(); setBrandSearch(""); }}
+                            style={{ ...optionStyle(false), color: "#E63946", fontWeight: 500 }}
+                          >
+                            Clear All
+                          </button>
+                        )}
+                        {filteredBrands.map((brand) => {
+                          const selected = selectedBrands.has(brand);
+                          return (
+                            <button key={brand} onClick={() => onToggleBrand(brand)} style={optionStyle(selected)}>
+                              <span style={{ width: 14, display: "flex", justifyContent: "center" }}>
+                                {selected ? checkmark : null}
+                              </span>
+                              {brand}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Rating */}
+              <div ref={ratingRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => toggleDropdown("rating")}
+                  style={btnStyle(selectedRatings.size > 0)}
+                >
+                  {ratingLabel}
+                  {chevron}
+                </button>
+                <AnimatePresence>
+                  {openDropdown === "rating" && (
+                    <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 150 }}>
+                      <div style={{ overflowY: "auto" }}>
+                        {selectedRatings.size > 0 && (
+                          <button
+                            onClick={onClearRatings}
+                            style={{ ...optionStyle(false), color: "#E63946", fontWeight: 500 }}
+                          >
+                            Clear All
+                          </button>
+                        )}
+                        {ratingOptions.map((r) => {
+                          const selected = selectedRatings.has(r);
+                          return (
+                            <button key={r} onClick={() => onToggleRating(r)} style={optionStyle(selected)}>
+                              <span style={{ width: 14, display: "flex", justifyContent: "center" }}>
+                                {selected ? checkmark : null}
+                              </span>
+                              {r === 5 ? "5 Stars" : `${r}–${r}.99 Stars`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Flavor */}
+              <div ref={flavorRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => toggleDropdown("flavor")}
+                  style={btnStyle(selectedFlavors.size > 0)}
+                >
+                  {flavorLabel}
+                  {chevron}
+                </button>
+                <AnimatePresence>
+                  {openDropdown === "flavor" && (
+                    <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 170, maxHeight: 320 }}>
+                      <div style={{ overflowY: "auto", maxHeight: 300 }}>
+                        {selectedFlavors.size > 0 && (
+                          <button
+                            onClick={onClearFlavors}
+                            style={{ ...optionStyle(false), color: "#E63946", fontWeight: 500 }}
+                          >
+                            Clear All
+                          </button>
+                        )}
+                        {flavors.map((f) => {
+                          const selected = selectedFlavors.has(f.id);
+                          return (
+                            <button key={f.id} onClick={() => onToggleFlavor(f.id)} style={optionStyle(selected)}>
+                              <span style={{ width: 14, display: "flex", justifyContent: "center" }}>
+                                {selected ? checkmark : null}
+                              </span>
+                              {f.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Country */}
+              <div ref={countryRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => toggleDropdown("country")}
+                  style={btnStyle(selectedCountries.size > 0)}
+                >
+                  {countryLabel}
+                  {chevron}
+                </button>
+                <AnimatePresence>
+                  {openDropdown === "country" && (
+                    <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 200, maxHeight: 280 }}>
+                      <div style={{ padding: 8 }}>
+                        <input
+                          type="text"
+                          placeholder="Filter countries..."
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          autoFocus
+                          style={{
+                            width: "100%",
+                            height: 32,
+                            borderRadius: 8,
+                            border: "1px solid #E5E7EB",
+                            padding: "0 10px",
+                            fontSize: 12,
+                            outline: "none",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
+                      <div style={{ overflowY: "auto", maxHeight: 230 }}>
+                        {selectedCountries.size > 0 && (
+                          <button
+                            onClick={() => { onClearCountries(); setCountrySearch(""); }}
+                            style={{ ...optionStyle(false), color: "#E63946", fontWeight: 500 }}
+                          >
+                            Clear All
+                          </button>
+                        )}
+                        {filteredCountries.map((country) => {
+                          const selected = selectedCountries.has(country);
+                          return (
+                            <button key={country} onClick={() => onToggleCountry(country)} style={optionStyle(selected)}>
+                              <span style={{ width: 14, display: "flex", justifyContent: "center" }}>
+                                {selected ? checkmark : null}
+                              </span>
+                              {country}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Search icon / expanded search bar */}
         {searchFocused ? (
           <div
@@ -348,7 +640,7 @@ export default function FilterDock({
               display: "flex",
               alignItems: "center",
               flex: 1,
-              minWidth: 280,
+              minWidth: isMobile ? 180 : 280,
             }}
           >
             <svg
@@ -455,7 +747,114 @@ export default function FilterDock({
           </button>
         )}
 
-        {showFilters && (
+        {/* Mobile: filter toggle + result count (when filters collapsed) */}
+        {isMobile && !searchFocused && (
+          <>
+            <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
+            <button
+              onClick={() => {
+                setFiltersExpanded((prev) => !prev);
+                if (filtersExpanded) {
+                  setOpenDropdown(null);
+                  setBrandSearch("");
+                  setCountrySearch("");
+                }
+              }}
+              style={{
+                ...btnStyle(filtersExpanded || activeFilterCount > 0),
+                position: "relative",
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="8" y1="12" x2="20" y2="12" />
+                <line x1="12" y1="18" x2="20" y2="18" />
+              </svg>
+              {activeFilterCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -4,
+                    right: -4,
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    backgroundColor: "#E63946",
+                    color: "#FFFFFF",
+                    fontSize: 9,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            <div style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }} />
+            {/* Result count + info */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4, position: "relative" }}>
+              <span style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}>
+                {resultCount}
+              </span>
+              <div
+                onMouseEnter={() => setShowInfo(true)}
+                onMouseLeave={() => setShowInfo(false)}
+                onClick={() => setShowInfo((prev) => !prev)}
+                style={{ position: "relative", display: "flex", alignItems: "center", cursor: "pointer" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <AnimatePresence>
+                  {showInfo && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.15 }}
+                      style={{
+                        position: "absolute",
+                        bottom: 24,
+                        right: 0,
+                        width: 220,
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: 10,
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.16)",
+                        border: "1px solid #E5E7EB",
+                        padding: "12px 14px",
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                        color: "#4B5563",
+                        zIndex: 50,
+                      }}
+                    >
+                      Explore all the instant ramens in the world. Data and images sourced from{" "}
+                      <a href="https://www.theramenrater.com" target="_blank" rel="noopener noreferrer" style={{ color: "#1A1A1A", fontWeight: 600, textDecoration: "underline" }}>
+                        The Ramen Rater
+                      </a>.
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Desktop: inline filter buttons */}
+        {showFilters && !isMobile && (
           <>
             <div
               style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }}
@@ -675,12 +1074,156 @@ export default function FilterDock({
               style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }}
             />
 
-            {/* Result count */}
-            <span
-              style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}
-            >
-              {resultCount}
-            </span>
+            {/* Country dropdown — multi-select */}
+            <div ref={countryRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => toggleDropdown("country")}
+                style={btnStyle(selectedCountries.size > 0)}
+              >
+                {countryLabel}
+                <kbd
+                  style={
+                    selectedCountries.size > 0 ? kbdActiveStyle : kbdStyle
+                  }
+                >
+                  C
+                </kbd>
+                {chevron}
+              </button>
+
+              <AnimatePresence>
+                {openDropdown === "country" && (
+                  <motion.div {...dropdownMotion} style={{ ...dropdownPanel, width: 200, maxHeight: 280 }}>
+                    <div style={{ padding: 8 }}>
+                      <input
+                        type="text"
+                        placeholder="Filter countries..."
+                        value={countrySearch}
+                        onChange={(e) => setCountrySearch(e.target.value)}
+                        autoFocus
+                        style={{
+                          width: "100%",
+                          height: 32,
+                          borderRadius: 8,
+                          border: "1px solid #E5E7EB",
+                          padding: "0 10px",
+                          fontSize: 12,
+                          outline: "none",
+                          boxSizing: "border-box",
+                        }}
+                      />
+                    </div>
+                    <div style={{ overflowY: "auto", maxHeight: 230 }}>
+                      {selectedCountries.size > 0 && (
+                        <button
+                          onClick={() => {
+                            onClearCountries();
+                            setCountrySearch("");
+                          }}
+                          style={{
+                            ...optionStyle(false),
+                            color: "#E63946",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Clear All
+                        </button>
+                      )}
+                      {filteredCountries.map((country) => {
+                        const selected = selectedCountries.has(country);
+                        return (
+                          <button
+                            key={country}
+                            onClick={() => onToggleCountry(country)}
+                            style={optionStyle(selected)}
+                          >
+                            <span
+                              style={{
+                                width: 14,
+                                display: "flex",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {selected ? checkmark : null}
+                            </span>
+                            {country}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div
+              style={{ width: 1, height: 24, backgroundColor: "#E5E7EB" }}
+            />
+
+            {/* Result count + info icon */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4, position: "relative" }}>
+              <span
+                style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap" }}
+              >
+                {resultCount}
+              </span>
+              <div
+                onMouseEnter={() => setShowInfo(true)}
+                onMouseLeave={() => setShowInfo(false)}
+                style={{ position: "relative", display: "flex", alignItems: "center", cursor: "pointer" }}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#9CA3AF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <AnimatePresence>
+                  {showInfo && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.15 }}
+                      style={{
+                        position: "absolute",
+                        bottom: 24,
+                        right: 0,
+                        width: 240,
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: 10,
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.16)",
+                        border: "1px solid #E5E7EB",
+                        padding: "12px 14px",
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                        color: "#4B5563",
+                        zIndex: 50,
+                      }}
+                    >
+                      Explore all the instant ramens in the world. Data and images sourced from{" "}
+                      <a
+                        href="https://www.theramenrater.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#1A1A1A", fontWeight: 600, textDecoration: "underline" }}
+                      >
+                        The Ramen Rater
+                      </a>
+                      .
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </>
         )}
       </motion.div>

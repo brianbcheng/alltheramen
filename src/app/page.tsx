@@ -26,6 +26,9 @@ export default function Home() {
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(
     new Set()
   );
+  const [selectedCountries, setSelectedCountries] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     fetch("/data/ramen.json")
@@ -47,6 +50,15 @@ export default function Home() {
       if (p.imagePath) brandSet.add(p.brand);
     }
     return Array.from(brandSet).sort();
+  }, [products]);
+
+  // Extract unique countries from products with images
+  const countries = useMemo(() => {
+    const countrySet = new Set<string>();
+    for (const p of products) {
+      if (p.imagePath) countrySet.add(p.country);
+    }
+    return Array.from(countrySet).sort();
   }, [products]);
 
   // Precompute flavor tags for each product
@@ -85,6 +97,9 @@ export default function Home() {
       // Brand: OR within selected
       if (selectedBrands.size > 0 && !selectedBrands.has(p.brand)) return false;
 
+      // Country: OR within selected
+      if (selectedCountries.size > 0 && !selectedCountries.has(p.country)) return false;
+
       // Flavor: AND within selected (must match ALL selected flavors)
       if (selectedFlavors.size > 0) {
         const tags = flavorTagsMap.get(p.id) || new Set();
@@ -120,7 +135,7 @@ export default function Home() {
       map.set(`${p.gridX},${p.gridY}`, p);
     }
     return { dataMap: map, total: filtered.length, cols };
-  }, [products, search, selectedBrands, selectedRatings, selectedFlavors, flavorTagsMap]);
+  }, [products, search, selectedBrands, selectedRatings, selectedFlavors, selectedCountries, flavorTagsMap]);
 
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
 
@@ -160,6 +175,20 @@ export default function Home() {
 
   const handleClearFlavors = useCallback(
     () => setSelectedFlavors(new Set()),
+    []
+  );
+
+  const handleToggleCountry = useCallback((country: string) => {
+    setSelectedCountries((prev) => {
+      const next = new Set(prev);
+      if (next.has(country)) next.delete(country);
+      else next.add(country);
+      return next;
+    });
+  }, []);
+
+  const handleClearCountries = useCallback(
+    () => setSelectedCountries(new Set()),
     []
   );
 
@@ -208,6 +237,7 @@ export default function Home() {
       <FilterDock
         brands={brands}
         flavors={availableFlavors}
+        countries={countries}
         search={search}
         onSearchChange={handleSearchChange}
         selectedBrands={selectedBrands}
@@ -219,6 +249,9 @@ export default function Home() {
         selectedFlavors={selectedFlavors}
         onToggleFlavor={handleToggleFlavor}
         onClearFlavors={handleClearFlavors}
+        selectedCountries={selectedCountries}
+        onToggleCountry={handleToggleCountry}
+        onClearCountries={handleClearCountries}
         resultCount={total}
       />
       <RamenModal
