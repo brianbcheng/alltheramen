@@ -9,6 +9,7 @@ export interface RamenProduct {
   topTen: string | null;
   imagePath: string | null;
   reviewUrl: string | null;
+  description: string;
   gridX: number;
   gridY: number;
 }
