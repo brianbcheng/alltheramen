@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "process-data": "npx tsx scripts/process-data.ts"
+    "process-data": "npx tsx scripts/process-data.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "husky": "^9.1.7",
     "papaparse": "^5.5.3",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
