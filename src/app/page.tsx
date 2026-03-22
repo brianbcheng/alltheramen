@@ -215,7 +215,7 @@ export default function Home() {
         </motion.div>
         <p
           style={{
-            color: "#6B7280",
+            color: "#78716C",
             fontSize: 16,
             fontFamily: "var(--font-display)",
           }}

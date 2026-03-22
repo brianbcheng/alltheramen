@@ -32,7 +32,7 @@ export default function Header() {
             style={{
               fontSize: 18,
               fontWeight: 700,
-              color: "#1A1A1A",
+              color: "#1C1917",
               margin: 0,
               lineHeight: 1.2,
             }}
@@ -45,11 +45,11 @@ export default function Header() {
               width: 22,
               height: 22,
               borderRadius: "50%",
-              border: "1px solid #E5E7EB",
-              backgroundColor: "#F9FAFB",
+              border: "1px solid #E7E5E4",
+              backgroundColor: "#F5F5F4",
               cursor: "pointer",
               fontSize: 12,
-              color: "#6B7280",
+              color: "#78716C",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -63,7 +63,7 @@ export default function Header() {
           className="header-subtitle"
           style={{
             fontSize: 13,
-            color: "#6B7280",
+            color: "#78716C",
             margin: "4px 0 0",
             lineHeight: 1.3,
           }}
@@ -76,10 +76,10 @@ export default function Header() {
             style={{
               marginTop: 8,
               padding: "8px 12px",
-              backgroundColor: "#F3F4F6",
+              backgroundColor: "#F5F5F4",
               borderRadius: 8,
               fontSize: 12,
-              color: "#4B5563",
+              color: "#57534E",
               lineHeight: 1.5,
             }}
           >
