@@ -117,7 +117,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 width: "100%",
                 display: "flex",
                 justifyContent: "center",
-                paddingTop: 32,
+                paddingTop: 16,
               }}
             >
               <TileVisual
@@ -126,12 +126,12 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 style={product.style}
                 stars={product.stars}
                 imagePath={product.imagePath}
-                size={256}
+                size={200}
               />
             </div>
 
             {/* Content */}
-            <div style={{ padding: 32 }}>
+            <div style={{ padding: "16px 32px 24px" }}>
               {/* Brand + Variety */}
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
@@ -173,10 +173,14 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 >
                   <p
                     style={{
-                      fontSize: 14,
+                      fontSize: 12,
                       color: "#666",
-                      margin: "12px 0 0",
-                      lineHeight: "23.8px",
+                      margin: "8px 0 0",
+                      lineHeight: "20px",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical" as const,
+                      overflow: "hidden",
                     }}
                   >
                     {product.description}
@@ -185,7 +189,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                     style={{
                       height: 1,
                       backgroundColor: "#E5E7EB",
-                      marginTop: 12,
+                      marginTop: 10,
                     }}
                   />
                 </motion.div>
@@ -200,7 +204,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   display: "flex",
                   flexWrap: "wrap",
                   gap: 24,
-                  marginTop: 19,
+                  marginTop: 14,
                 }}
               >
                 <div style={{ flex: "1 0 0", minWidth: 0 }}>
@@ -230,7 +234,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: 0.25 }}
-                style={{ marginTop: 19 }}
+                style={{ marginTop: 14 }}
               >
                 <UserRating
                   key={product.reviewNumber}
@@ -254,8 +258,8 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
-                      marginTop: 24,
-                      padding: "14px 16px",
+                      marginTop: 16,
+                      padding: "12px 16px",
                       borderRadius: 9999,
                       backgroundColor: "#000",
                       color: "#FFF",
@@ -296,8 +300,8 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
               {/* Attribution */}
               <div
                 style={{
-                  marginTop: 16,
-                  fontSize: 12,
+                  marginTop: 12,
+                  fontSize: 11,
                   color: "#666",
                   textAlign: "center",
                   lineHeight: "16px",
