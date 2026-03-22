@@ -1,0 +1,70 @@
+/** Map country names (including misspellings in the dataset) to ISO 3166-1 alpha-2 codes for emoji flags. */
+
+const COUNTRY_CODES: Record<string, string> = {
+  "Australia": "AU",
+  "Bangladesh": "BD",
+  "Brazil": "BR",
+  "Cambodia": "KH",
+  "Canada": "CA",
+  "China": "CN",
+  "Colombia": "CO",
+  "Dubai": "AE",
+  "Estonia": "EE",
+  "Fiji": "FJ",
+  "Finland": "FI",
+  "France": "FR",
+  "Germany": "DE",
+  "Ghana": "GH",
+  "Holland": "NL",
+  "Hong Kong": "HK",
+  "Hungary": "HU",
+  "India": "IN",
+  "Indonesia": "ID",
+  "Ireland": "IE",
+  "Israel": "IL",
+  "Italy": "IT",
+  "Japan": "JP",
+  "Malaysia": "MY",
+  "Mexico": "MX",
+  "Myanmar": "MM",
+  "Nepal": "NP",
+  "Netherlands": "NL",
+  "New Zealand": "NZ",
+  "Nigeria": "NG",
+  "Pakistan": "PK",
+  "Peru": "PE",
+  "Philippines": "PH",
+  "Phillippines": "PH",
+  "Phlippines": "PH",
+  "Poland": "PL",
+  "Portugal": "PT",
+  "Russia": "RU",
+  "Russian Federation": "RU",
+  "Sarawak": "MY",
+  "Serbia": "RS",
+  "Singapore": "SG",
+  "Souh Korea": "KR",
+  "South Korea": "KR",
+  "Spain": "ES",
+  "Sweden": "SE",
+  "THailand": "TH",
+  "Taiwan": "TW",
+  "Thailand": "TH",
+  "Turkey": "TR",
+  "UK": "GB",
+  "USA": "US",
+  "Ukraine": "UA",
+  "United Kingdom": "GB",
+  "United States": "US",
+  "Vietnam": "VN",
+  "Yaiwan": "TW",
+};
+
+export function getCountryFlag(country: string): string {
+  const code = COUNTRY_CODES[country];
+  if (!code) return "";
+  // Convert ISO code to regional indicator emoji
+  return String.fromCodePoint(
+    ...code.split("").map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)
+  );
+}
