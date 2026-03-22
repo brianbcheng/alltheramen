@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TileVisual from "./TileVisual";
 import { getStyleEmoji } from "@/lib/colors";
+import { getCountryFlag } from "@/lib/countryFlags";
 import type { RamenProduct } from "@/types";
 
 interface RamenModalProps {
@@ -11,56 +12,85 @@ interface RamenModalProps {
   onClose: () => void;
 }
 
-function StarDisplay({ stars }: { stars: number }) {
-  const fullStars = Math.floor(stars);
-  const hasHalf = stars % 1 >= 0.25 && stars % 1 < 0.75;
-  const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+function RamenBowlIcon({ filled = "full", size = 18 }: { filled?: "full" | "half" | "empty"; size?: number }) {
+  const colorBowl = "#E63946";
+  const colorNoodle = "#F4A261";
+  const colorChopstick = "#8B4513";
+  const greyBowl = "#D6D3D1";
+  const greyNoodle = "#D6D3D1";
+  const greyChopstick = "#D6D3D1";
+
+  const clipId = `half-clip-${Math.random().toString(36).slice(2, 8)}`;
+
+  if (filled === "half") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+        <defs>
+          <clipPath id={clipId}>
+            <rect x="0" y="0" width="32" height="64" />
+          </clipPath>
+        </defs>
+        {/* Grey (empty) layer */}
+        <g>
+          <ellipse cx="32" cy="38" rx="26" ry="16" fill={greyBowl} />
+          <path d="M6 38c0 10 11.6 20 26 20s26-10 26-20" fill={greyBowl} />
+          <ellipse cx="32" cy="30" rx="20" ry="8" fill={greyNoodle} />
+          <path d="M18 24c4 6 10 8 14 6" stroke={greyNoodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M24 22c2 7 8 10 12 8" stroke={greyNoodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M30 21c0 7 4 10 8 9" stroke={greyNoodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <line x1="38" y1="8" x2="48" y2="28" stroke={greyChopstick} strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="42" y1="6" x2="52" y2="26" stroke={greyChopstick} strokeWidth="2.5" strokeLinecap="round" />
+        </g>
+        {/* Colored (filled) layer clipped to left half */}
+        <g clipPath={`url(#${clipId})`}>
+          <ellipse cx="32" cy="38" rx="26" ry="16" fill={colorBowl} />
+          <path d="M6 38c0 10 11.6 20 26 20s26-10 26-20" fill={colorBowl} />
+          <ellipse cx="32" cy="30" rx="20" ry="8" fill={colorNoodle} />
+          <path d="M18 24c4 6 10 8 14 6" stroke={colorNoodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M24 22c2 7 8 10 12 8" stroke={colorNoodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M30 21c0 7 4 10 8 9" stroke={colorNoodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <line x1="38" y1="8" x2="48" y2="28" stroke={colorChopstick} strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="42" y1="6" x2="52" y2="26" stroke={colorChopstick} strokeWidth="2.5" strokeLinecap="round" />
+        </g>
+      </svg>
+    );
+  }
+
+  const bowl = filled === "full" ? colorBowl : greyBowl;
+  const noodle = filled === "full" ? colorNoodle : greyNoodle;
+  const chopstick = filled === "full" ? colorChopstick : greyChopstick;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-      {Array.from({ length: fullStars }).map((_, i) => (
-        <div
-          key={`f-${i}`}
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            backgroundColor: "#E63946",
-          }}
-        />
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+      <ellipse cx="32" cy="38" rx="26" ry="16" fill={bowl} />
+      <path d="M6 38c0 10 11.6 20 26 20s26-10 26-20" fill={bowl} />
+      <ellipse cx="32" cy="30" rx="20" ry="8" fill={noodle} />
+      <path d="M18 24c4 6 10 8 14 6" stroke={noodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path d="M24 22c2 7 8 10 12 8" stroke={noodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path d="M30 21c0 7 4 10 8 9" stroke={noodle} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <line x1="38" y1="8" x2="48" y2="28" stroke={chopstick} strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="42" y1="6" x2="52" y2="26" stroke={chopstick} strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RamenRating({ stars }: { stars: number }) {
+  const fullBowls = Math.floor(stars);
+  const hasHalf = stars % 1 >= 0.25 && stars % 1 < 0.75;
+  const roundUp = stars % 1 >= 0.75;
+  const totalFull = fullBowls + (roundUp ? 1 : 0);
+  const emptyBowls = 5 - totalFull - (hasHalf ? 1 : 0);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+      {Array.from({ length: totalFull }).map((_, i) => (
+        <RamenBowlIcon key={`f-${i}`} filled="full" size={18} />
       ))}
-      {hasHalf && (
-        <div
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            background:
-              "linear-gradient(to right, #E63946 50%, transparent 50%)",
-            border: "1.5px solid #E63946",
-            boxSizing: "border-box",
-          }}
-        />
-      )}
-      {Array.from({ length: emptyStars }).map((_, i) => (
-        <div
-          key={`e-${i}`}
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            border: "1.5px solid #E63946",
-            boxSizing: "border-box",
-          }}
-        />
+      {hasHalf && <RamenBowlIcon filled="half" size={18} />}
+      {Array.from({ length: emptyBowls }).map((_, i) => (
+        <RamenBowlIcon key={`e-${i}`} filled="empty" size={18} />
       ))}
-      <span
-        style={{
-          marginLeft: 8,
-          fontSize: 14,
-          color: "#6B7280",
-        }}
-      >
+      <span style={{ marginLeft: 6, fontSize: 14, color: "#78716C" }}>
         {stars.toFixed(2)}
       </span>
     </div>
@@ -135,7 +165,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 18,
-                color: "#6B7280",
+                color: "#78716C",
                 backdropFilter: "blur(4px)",
               }}
             >
@@ -169,7 +199,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 style={{
                   fontSize: 24,
                   fontWeight: 400,
-                  color: "#1A1A1A",
+                  color: "#1C1917",
                   margin: 0,
                   fontFamily: "var(--font-display)",
                 }}
@@ -182,17 +212,33 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 transition={{ duration: 0.25, delay: 0.15 }}
                 style={{
                   fontSize: 18,
-                  color: "#6B7280",
+                  color: "#78716C",
                   margin: "4px 0 0",
                 }}
               >
                 {product.variety}
               </motion.p>
 
+              {product.description && (
+                <motion.p
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, delay: 0.18 }}
+                  style={{
+                    fontSize: 13,
+                    color: "#A8A29E",
+                    margin: "8px 0 0",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {product.description}
+                </motion.p>
+              )}
+
               <div
                 style={{
                   height: 1,
-                  backgroundColor: "#E5E7EB",
+                  backgroundColor: "#E7E5E4",
                   margin: "16px 0",
                 }}
               />
@@ -211,7 +257,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#9CA3AF",
+                      color: "#A8A29E",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                       marginBottom: 4,
@@ -219,7 +265,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   >
                     Style
                   </div>
-                  <div style={{ fontSize: 14, color: "#1A1A1A" }}>
+                  <div style={{ fontSize: 14, color: "#1C1917" }}>
                     {getStyleEmoji(product.style)} {product.style}
                   </div>
                 </div>
@@ -228,7 +274,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#9CA3AF",
+                      color: "#A8A29E",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                       marginBottom: 4,
@@ -236,8 +282,8 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   >
                     Country
                   </div>
-                  <div style={{ fontSize: 14, color: "#1A1A1A" }}>
-                    {product.country}
+                  <div style={{ fontSize: 14, color: "#1C1917" }}>
+                    {getCountryFlag(product.country)} {product.country}
                   </div>
                 </div>
 
@@ -245,7 +291,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#9CA3AF",
+                      color: "#A8A29E",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                       marginBottom: 4,
@@ -253,7 +299,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                   >
                     Rating
                   </div>
-                  <StarDisplay stars={product.stars} />
+                  <RamenRating stars={product.stars} />
                 </div>
 
                 {product.topTen && (
@@ -261,7 +307,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                     <div
                       style={{
                         fontSize: 12,
-                        color: "#9CA3AF",
+                        color: "#A8A29E",
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
                         marginBottom: 4,
@@ -299,7 +345,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                     marginTop: 20,
                     padding: "10px 16px",
                     borderRadius: 10,
-                    backgroundColor: "#1A1A1A",
+                    backgroundColor: "#1C1917",
                     color: "#FFFFFF",
                     fontSize: 13,
                     fontWeight: 500,
@@ -337,7 +383,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 style={{
                   marginTop: product.reviewUrl ? 12 : 20,
                   fontSize: 11,
-                  color: "#9CA3AF",
+                  color: "#A8A29E",
                   textAlign: "center",
                 }}
               >
