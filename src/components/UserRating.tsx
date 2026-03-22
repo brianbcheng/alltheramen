@@ -14,6 +14,7 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [totalRatings, setTotalRatings] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const fingerprintRef = useRef("");
 
   useEffect(() => {
@@ -26,12 +27,13 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
         setAverageRating(data.averageRating);
         setTotalRatings(data.totalRatings);
         setUserRating(data.userRating);
+        if (data.userRating) setSubmitted(true);
       })
       .catch(() => {});
   }, [reviewNumber]);
 
   async function submitRating(rating: number) {
-    if (submitting) return;
+    if (submitting || submitted) return;
     setSubmitting(true);
     setUserRating(rating);
 
@@ -50,6 +52,7 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
         setAverageRating(data.averageRating);
         setTotalRatings(data.totalRatings);
         setUserRating(data.userRating);
+        setSubmitted(true);
       }
     } catch {
       // silently fail
@@ -59,6 +62,7 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
   }
 
   function handleMouseMove(e: React.MouseEvent, bowlIndex: number) {
+    if (submitted) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const isLeftHalf = x < rect.width / 2;
@@ -77,32 +81,60 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
     <div>
       <div
         style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
           fontSize: 12,
-          color: "#666",
+          color: submitted ? "#16a34a" : "#666",
           textTransform: "uppercase",
           letterSpacing: "1.2px",
           lineHeight: "16px",
           marginBottom: 8,
+          transition: "color 0.2s ease",
         }}
       >
-        Submit your rating!
+        {submitted && (
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#16a34a"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+        {submitted ? "Rating submitted" : "Submit your rating!"}
       </div>
 
       <div
-        style={{ display: "flex", alignItems: "center", gap: 2 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 2,
+          opacity: submitted ? 0.5 : 1,
+          transition: "opacity 0.2s ease",
+        }}
         onMouseLeave={() => setHoverRating(null)}
       >
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
             style={{
-              cursor: submitting ? "wait" : "pointer",
+              cursor: submitted ? "default" : submitting ? "wait" : "pointer",
               padding: 2,
               transition: "transform 0.1s ease",
-              transform: hoverRating !== null && hoverRating >= i ? "scale(1.1)" : "scale(1)",
+              transform:
+                !submitted && hoverRating !== null && hoverRating >= i
+                  ? "scale(1.1)"
+                  : "scale(1)",
             }}
             onMouseMove={(e) => handleMouseMove(e, i)}
             onClick={() => {
+              if (submitted) return;
               const rating = hoverRating ?? i;
               submitRating(rating);
             }}
