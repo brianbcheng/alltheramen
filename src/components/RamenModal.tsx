@@ -173,14 +173,10 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 >
                   <p
                     style={{
-                      fontSize: 12,
+                      fontSize: 11,
                       color: "#666",
                       margin: "8px 0 0",
-                      lineHeight: "20px",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical" as const,
-                      overflow: "hidden",
+                      lineHeight: "18px",
                     }}
                   >
                     {product.description}
