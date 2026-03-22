@@ -10,6 +10,7 @@
     "process-data": "npx tsx scripts/process-data.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.3",
     "framer-motion": "^12.36.0",
     "next": "16.1.6",
     "react": "19.2.3",
