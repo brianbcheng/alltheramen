@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Permanent_Marker, DM_Sans } from "next/font/google";
+import { Permanent_Marker, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const permanentMarker = Permanent_Marker({
@@ -8,7 +8,7 @@ const permanentMarker = Permanent_Marker({
   subsets: ["latin"],
 });
 
-const dmSans = DM_Sans({
+const geistMono = Geist_Mono({
   variable: "--font-body",
   subsets: ["latin"],
 });
@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${permanentMarker.variable} ${dmSans.variable} antialiased`}>{children}</body>
+      <body className={`${permanentMarker.variable} ${geistMono.variable} antialiased`}>{children}</body>
     </html>
   );
 }

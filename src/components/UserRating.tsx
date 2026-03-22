@@ -78,13 +78,14 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
       <div
         style={{
           fontSize: 12,
-          color: "#A8A29E",
+          color: "#666",
           textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          marginBottom: 6,
+          letterSpacing: "1.2px",
+          lineHeight: "16px",
+          marginBottom: 8,
         }}
       >
-        Your Rating
+        Submit your rating!
       </div>
 
       <div
@@ -106,7 +107,7 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
               submitRating(rating);
             }}
           >
-            <RamenBowlIcon filled={getBowlState(i)} size={24} />
+            <RamenBowlIcon filled={getBowlState(i)} size={28} />
           </div>
         ))}
 
@@ -115,7 +116,7 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
             style={{
               marginLeft: 8,
               fontSize: 14,
-              color: "#78716C",
+              color: "#666",
             }}
           >
             {userRating.toFixed(1)}
@@ -128,7 +129,7 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
           style={{
             marginTop: 6,
             fontSize: 12,
-            color: "#A8A29E",
+            color: "#666",
           }}
         >
           Community avg: {averageRating!.toFixed(2)} ({totalRatings}{" "}
