@@ -1,6 +1,13 @@
 import { useMemo } from "react";
-import { getVisibleRange, CELL_WIDTH, CELL_HEIGHT } from "@/lib/grid";
+import { CELL_WIDTH, CELL_HEIGHT } from "@/lib/grid";
 import type { RamenProduct } from "@/types";
+
+/**
+ * Mod that always returns a positive result (unlike JS %).
+ */
+function posMod(n: number, m: number): number {
+  return ((n % m) + m) % m;
+}
 
 export function useGridVirtualization(
   offsetX: number,
@@ -12,27 +19,35 @@ export function useGridVirtualization(
   cols: number
 ) {
   const visibleTiles = useMemo(() => {
-    if (viewportWidth === 0 || viewportHeight === 0) return [];
+    if (viewportWidth === 0 || viewportHeight === 0 || cols === 0) return [];
 
-    const { minCol, maxCol, minRow, maxRow: maxR } = getVisibleRange(
-      offsetX,
-      offsetY,
-      viewportWidth,
-      viewportHeight,
-      maxRow,
-      cols
-    );
+    const totalRows = maxRow + 1;
+    if (totalRows === 0) return [];
 
-    const tiles: { product: RamenProduct; x: number; y: number }[] = [];
+    // How many cells fit in the viewport + overdraw buffer for warp
+    const OVERDRAW = 3;
+    const startCol = Math.floor(-offsetX / CELL_WIDTH) - OVERDRAW;
+    const endCol = Math.ceil((-offsetX + viewportWidth) / CELL_WIDTH) + OVERDRAW;
+    const startRow = Math.floor(-offsetY / CELL_HEIGHT) - OVERDRAW;
+    const endRow = Math.ceil((-offsetY + viewportHeight) / CELL_HEIGHT) + OVERDRAW;
 
-    for (let row = minRow; row <= maxR; row++) {
-      for (let col = minCol; col <= maxCol; col++) {
-        const product = dataMap.get(`${col},${row}`);
+    const tiles: { product: RamenProduct; x: number; y: number; key: string }[] = [];
+
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        // Wrap into the actual grid
+        const wrappedCol = posMod(col, cols);
+        const wrappedRow = posMod(row, totalRows);
+
+        const product = dataMap.get(`${wrappedCol},${wrappedRow}`);
         if (product) {
           tiles.push({
             product,
+            // Position in screen-space (unwrapped coordinates)
             x: col * CELL_WIDTH,
             y: row * CELL_HEIGHT,
+            // Unique key per screen position (not per product, since product repeats)
+            key: `${col},${row}`,
           });
         }
       }
