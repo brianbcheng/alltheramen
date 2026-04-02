@@ -8,18 +8,20 @@ import RamenTile from "./RamenTile";
 import type { RamenProduct } from "@/types";
 
 // ── Warp configuration ─────────────────────────────────────
-const PERSPECTIVE = 600;
-const ROTATE_X_MAX = 40;
-const ROTATE_Y_MAX = 50;
-const SCALE_EDGE = 0.55;
-const TRANSLATE_Z_EDGE = -400;
-const WARP_POWER = 1.2;
+const PERSPECTIVE = 400;
+const ROTATE_X_MAX = 55;
+const ROTATE_Y_MAX = 65;
+const SCALE_EDGE = 0.4;
+const TRANSLATE_Z_EDGE = -500;
+const WARP_POWER = 1.0;
 
 // ── Navigation mode ────────────────────────────────────────
 const HOLD_DELAY = 250;
 const NAV_ZOOM = 0.92;
 const MOMENTUM_DECAY = 0.95;
 const MOMENTUM_MIN = 0.5;
+const MOBILE_BREAKPOINT = 768;
+const MOBILE_SCALE = 0.5; // 50% size on mobile = 100% smaller
 
 interface GridCanvasProps {
   dataMap: Map<string, RamenProduct>;
@@ -37,6 +39,8 @@ export default function GridCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [renderOffset, setRenderOffset] = useState({ x: 0, y: 0 });
+  const isMobile = viewportSize.width > 0 && viewportSize.width < MOBILE_BREAKPOINT;
+  const tileScale = isMobile ? MOBILE_SCALE : 1;
 
   const [mode, setMode] = useState<"resting" | "navigating">("resting");
   const modeRef = useRef<"resting" | "navigating">("resting");
@@ -162,8 +166,10 @@ export default function GridCanvas({
       }
 
       if (modeRef.current === "navigating" && lastPointerPos.current) {
-        const moveDx = e.clientX - lastPointerPos.current.x;
-        const moveDy = e.clientY - lastPointerPos.current.y;
+        // Compensate drag for tile scale (smaller tiles = faster pan)
+        const scaleFactor = 1 / tileScale;
+        const moveDx = (e.clientX - lastPointerPos.current.x) * scaleFactor;
+        const moveDy = (e.clientY - lastPointerPos.current.y) * scaleFactor;
         motionX.set(motionX.get() + moveDx);
         motionY.set(motionY.get() + moveDy);
         velocityRef.current = { x: moveDx, y: moveDy };
@@ -171,7 +177,7 @@ export default function GridCanvas({
 
       lastPointerPos.current = { x: e.clientX, y: e.clientY };
     },
-    [enterNavMode, motionX, motionY]
+    [enterNavMode, motionX, motionY, tileScale]
   );
 
   const handlePointerUp = useCallback(() => {
@@ -264,7 +270,7 @@ export default function GridCanvas({
           position: "absolute",
           inset: 0,
           transformOrigin: "50% 50%",
-          transform: `scale(${isNavigating ? NAV_ZOOM : 1})`,
+          transform: `scale(${(isNavigating ? NAV_ZOOM : 1) * tileScale})`,
           transition: "transform 400ms cubic-bezier(0.23, 1, 0.32, 1)",
         }}
       >
