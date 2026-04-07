@@ -1,6 +1,6 @@
 export const TILE_WIDTH = 160;
 export const TILE_HEIGHT = 160;
-export const GAP = 14;
+export const GAP = 7;
 export const CELL_WIDTH = TILE_WIDTH + GAP;
 export const CELL_HEIGHT = TILE_HEIGHT + GAP;
 export const GRID_COLS = 50;
