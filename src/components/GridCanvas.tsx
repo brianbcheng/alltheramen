@@ -21,7 +21,7 @@ const NAV_ZOOM = 0.92;
 const MOMENTUM_DECAY = 0.95;
 const MOMENTUM_MIN = 0.5;
 const MOBILE_BREAKPOINT = 768;
-const MOBILE_SCALE = 0.94; // mobile scale
+const MOBILE_SCALE = 1.15; // mobile scale — larger tiles on small screens
 
 interface GridCanvasProps {
   dataMap: Map<string, RamenProduct>;
