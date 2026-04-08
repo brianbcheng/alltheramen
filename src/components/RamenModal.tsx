@@ -60,6 +60,9 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
           }}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${product.brand} ${product.variety} details`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -81,6 +84,7 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
             {/* Close button */}
             <button
               onClick={onClose}
+              aria-label="Close product details"
               style={{
                 position: "absolute",
                 top: 16,
