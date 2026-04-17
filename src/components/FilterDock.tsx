@@ -8,6 +8,7 @@ interface FilterDockProps {
   brands: string[];
   flavors: FlavorProfile[];
   countries: string[];
+  ratings: number[];
   search: string;
   onSearchChange: (value: string) => void;
   selectedBrands: Set<string>;
@@ -31,6 +32,7 @@ export default function FilterDock({
   brands,
   flavors,
   countries,
+  ratings,
   search,
   onSearchChange,
   selectedBrands,
@@ -80,7 +82,7 @@ export default function FilterDock({
   const activeFilterCount =
     selectedBrands.size + selectedRatings.size + selectedFlavors.size + selectedCountries.size;
 
-  const ratingOptions = [1, 2, 3, 4, 5];
+  const ratingOptions = ratings;
 
   // Labels
   const brandLabel =

@@ -43,24 +43,6 @@ export default function RamenExplorer() {
       });
   }, []);
 
-  // Extract unique brands from products with images
-  const brands = useMemo(() => {
-    const brandSet = new Set<string>();
-    for (const p of products) {
-      if (p.imagePath) brandSet.add(p.brand);
-    }
-    return Array.from(brandSet).sort();
-  }, [products]);
-
-  // Extract unique countries from products with images
-  const countries = useMemo(() => {
-    const countrySet = new Set<string>();
-    for (const p of products) {
-      if (p.imagePath) countrySet.add(p.country);
-    }
-    return Array.from(countrySet).sort();
-  }, [products]);
-
   // Precompute flavor tags for each product
   const flavorTagsMap = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -70,56 +52,81 @@ export default function RamenExplorer() {
     return map;
   }, [products]);
 
-  // Available flavor profiles (only those that have matches in the data)
-  const availableFlavors = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const tags of flavorTagsMap.values()) {
-      for (const tag of tags) {
-        counts.set(tag, (counts.get(tag) || 0) + 1);
-      }
-    }
-    return FLAVOR_PROFILES.filter((f) => (counts.get(f.id) || 0) > 0);
-  }, [flavorTagsMap]);
-
-  // Filter and re-grid products
-  const { dataMap, total, cols: gridCols } = useMemo(() => {
+  // Cascading filter + grid computation
+  // Each dropdown shows only options that produce results given the OTHER active filters
+  const { dataMap, total, cols: gridCols, availableBrands, availableCountries, availableFlavors, availableRatings } = useMemo(() => {
     const searchLower = search.toLowerCase();
-    const filtered = products.filter((p) => {
+
+    // Base: has image + matches search
+    const base = products.filter((p) => {
       if (!p.imagePath) return false;
-
-      // Rating: OR within selected (match any selected rating bucket)
-      if (selectedRatings.size > 0) {
-        const bucket = Math.floor(p.stars);
-        // 5-star: exact match; others: bucket (e.g. 3 = 3.0–3.99)
-        if (!selectedRatings.has(Math.min(bucket, 5))) return false;
-      }
-
-      // Brand: OR within selected
-      if (selectedBrands.size > 0 && !selectedBrands.has(p.brand)) return false;
-
-      // Country: OR within selected
-      if (selectedCountries.size > 0 && !selectedCountries.has(p.country)) return false;
-
-      // Flavor: AND within selected (must match ALL selected flavors)
-      if (selectedFlavors.size > 0) {
-        const tags = flavorTagsMap.get(p.id) || new Set();
-        for (const flavor of selectedFlavors) {
-          if (!tags.has(flavor)) return false;
-        }
-      }
-
-      // Search
       if (
         search &&
         !p.brand.toLowerCase().includes(searchLower) &&
         !p.variety.toLowerCase().includes(searchLower)
       )
         return false;
-
       return true;
     });
 
-    // Dynamically size grid: use fewer columns for small result sets
+    // Per-dimension matchers
+    const matchesRating = (p: RamenProduct): boolean => {
+      if (selectedRatings.size === 0) return true;
+      const bucket = Math.floor(p.stars);
+      return selectedRatings.has(Math.min(bucket, 5));
+    };
+
+    const matchesFlavor = (p: RamenProduct): boolean => {
+      if (selectedFlavors.size === 0) return true;
+      const tags = flavorTagsMap.get(p.id) || new Set<string>();
+      for (const flavor of selectedFlavors) {
+        if (!tags.has(flavor)) return false;
+      }
+      return true;
+    };
+
+    const matchesBrand = (p: RamenProduct): boolean =>
+      selectedBrands.size === 0 || selectedBrands.has(p.brand);
+
+    const matchesCountry = (p: RamenProduct): boolean =>
+      selectedCountries.size === 0 || selectedCountries.has(p.country);
+
+    // Available options per dimension (apply all OTHER filters, skip own)
+    const brandsSet = new Set<string>();
+    const countriesSet = new Set<string>();
+    const flavorsSet = new Set<string>();
+    const ratingsSet = new Set<number>();
+
+    for (const p of base) {
+      const rating = matchesRating(p);
+      const flavor = matchesFlavor(p);
+      const brand = matchesBrand(p);
+      const country = matchesCountry(p);
+
+      // Brands: apply country + rating + flavor (skip brand)
+      if (country && rating && flavor) brandsSet.add(p.brand);
+
+      // Countries: apply brand + rating + flavor (skip country)
+      if (brand && rating && flavor) countriesSet.add(p.country);
+
+      // Ratings: apply brand + country + flavor (skip rating)
+      if (brand && country && flavor) {
+        ratingsSet.add(Math.min(Math.floor(p.stars), 5));
+      }
+
+      // Flavors: apply brand + country + rating (skip flavor)
+      if (brand && country && rating) {
+        const tags = flavorTagsMap.get(p.id) || new Set<string>();
+        for (const tag of tags) flavorsSet.add(tag);
+      }
+    }
+
+    // Full filtered set (all filters applied)
+    const filtered = base.filter(
+      (p) => matchesBrand(p) && matchesCountry(p) && matchesRating(p) && matchesFlavor(p)
+    );
+
+    // Dynamically size grid: fewer columns for small result sets
     const cols = Math.min(
       MAX_COLS,
       Math.max(1, Math.ceil(Math.sqrt(filtered.length * 2)))
@@ -127,14 +134,23 @@ export default function RamenExplorer() {
 
     const map = new Map<string, RamenProduct>();
     for (let i = 0; i < filtered.length; i++) {
-      const p = {
+      const fp = {
         ...filtered[i],
         gridX: i % cols,
         gridY: Math.floor(i / cols),
       };
-      map.set(`${p.gridX},${p.gridY}`, p);
+      map.set(`${fp.gridX},${fp.gridY}`, fp);
     }
-    return { dataMap: map, total: filtered.length, cols };
+
+    return {
+      dataMap: map,
+      total: filtered.length,
+      cols,
+      availableBrands: Array.from(brandsSet).sort(),
+      availableCountries: Array.from(countriesSet).sort(),
+      availableFlavors: FLAVOR_PROFILES.filter((f) => flavorsSet.has(f.id)),
+      availableRatings: Array.from(ratingsSet).sort((a, b) => a - b),
+    };
   }, [products, search, selectedBrands, selectedRatings, selectedFlavors, selectedCountries, flavorTagsMap]);
 
   const handleSearchChange = useCallback((v: string) => setSearch(v), []);
@@ -235,14 +251,15 @@ export default function RamenExplorer() {
         onSelectProduct={setSelectedProduct}
       />
       <FilterDock
-        brands={brands}
+        brands={availableBrands}
         flavors={availableFlavors}
-        countries={countries}
+        countries={availableCountries}
         search={search}
         onSearchChange={handleSearchChange}
         selectedBrands={selectedBrands}
         onToggleBrand={handleToggleBrand}
         onClearBrands={handleClearBrands}
+        ratings={availableRatings}
         selectedRatings={selectedRatings}
         onToggleRating={handleToggleRating}
         onClearRatings={handleClearRatings}
