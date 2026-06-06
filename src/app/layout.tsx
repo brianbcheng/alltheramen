@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { Permanent_Marker, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const SITE_URL = "https://infinteramen.xyz";
 const SITE_NAME = "Infinite Ramen";
 const SITE_DESCRIPTION =
   "Explore 5,000+ instant ramen products from around the world on an interactive, zoomable 2D grid. Filter by brand, country, flavor, and rating.";
-
-const permanentMarker = Permanent_Marker({
-  variable: "--font-display",
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -129,6 +117,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Hanken+Grotesk:wght@400;600&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -142,7 +134,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${permanentMarker.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

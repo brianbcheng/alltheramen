@@ -30,8 +30,10 @@ export default function Header() {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <h1
             style={{
+              fontFamily: "var(--font-display)",
               fontSize: 18,
-              fontWeight: 700,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
               color: "#1C1917",
               margin: 0,
               lineHeight: 1.2,
@@ -62,6 +64,7 @@ export default function Header() {
         <p
           className="header-subtitle"
           style={{
+            fontFamily: "var(--font-text)",
             fontSize: 13,
             color: "#78716C",
             margin: "4px 0 0",

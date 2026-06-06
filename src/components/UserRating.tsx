@@ -84,10 +84,12 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
           display: "flex",
           alignItems: "center",
           gap: 6,
-          fontSize: 12,
-          color: submitted ? "#16a34a" : "#666",
+          fontFamily: "var(--font-mono)",
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: submitted ? "#16a34a" : "#78716C",
           textTransform: "uppercase",
-          letterSpacing: "1.2px",
+          letterSpacing: "0.12em",
           lineHeight: "16px",
           marginBottom: 8,
           transition: "color 0.2s ease",
@@ -146,9 +148,10 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
         {userRating && (
           <span
             style={{
+              fontFamily: "var(--font-mono)",
               marginLeft: 8,
               fontSize: 14,
-              color: "#666",
+              color: "#78716C",
             }}
           >
             {userRating.toFixed(1)}
@@ -159,9 +162,11 @@ export default function UserRating({ reviewNumber }: UserRatingProps) {
       {totalRatings > 0 && (
         <div
           style={{
+            fontFamily: "var(--font-mono)",
             marginTop: 6,
             fontSize: 12,
-            color: "#666",
+            fontWeight: 400,
+            color: "#78716C",
           }}
         >
           Community avg: {averageRating!.toFixed(2)} ({totalRatings}{" "}

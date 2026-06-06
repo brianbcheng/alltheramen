@@ -3,6 +3,9 @@
 :root {
   --background: #FFFFFF;
   --foreground: #1C1917;
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-text: "Hanken Grotesk", sans-serif;
+  --font-mono: "Space Mono", monospace;
 }
 
 @theme inline {
@@ -13,7 +16,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-family: var(--font-text);
   overflow: hidden;
   overscroll-behavior: none;
   margin: 0;

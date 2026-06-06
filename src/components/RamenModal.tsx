@@ -14,17 +14,21 @@ interface RamenModalProps {
 }
 
 const labelStyle = {
-  fontSize: 12,
-  color: "#666",
+  fontFamily: "var(--font-mono)",
+  fontSize: 12.5,
+  fontWeight: 700,
+  color: "#78716C",
   textTransform: "uppercase" as const,
-  letterSpacing: "1.2px",
+  letterSpacing: "0.12em",
   lineHeight: "16px",
 };
 
 const valueStyle = {
-  fontSize: 14,
+  fontFamily: "var(--font-text)",
+  fontSize: 18,
+  fontWeight: 600,
   color: "#000",
-  lineHeight: "20px",
+  lineHeight: "24px",
 };
 
 export default function RamenModal({ product, onClose }: RamenModalProps) {
@@ -145,23 +149,27 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
               >
                 <h2
                   style={{
-                    fontSize: 24,
-                    fontWeight: 400,
+                    fontFamily: "var(--font-display)",
+                    fontSize: 44,
+                    fontWeight: 800,
                     color: "#000",
                     margin: 0,
-                    fontFamily: "var(--font-display)",
-                    letterSpacing: "0.6px",
-                    lineHeight: "32px",
+                    letterSpacing: "-0.02em",
+                    lineHeight: 0.98,
                   }}
                 >
                   {product.brand}
                 </h2>
                 <p
                   style={{
-                    fontSize: 18,
+                    fontFamily: "var(--font-display)",
+                    fontSize: 29,
+                    fontWeight: 600,
                     color: "#000",
                     margin: 0,
-                    lineHeight: "28px",
+                    letterSpacing: "-0.01em",
+                    lineHeight: 1.16,
+                    textWrap: "balance",
                   }}
                 >
                   {product.variety}
@@ -177,10 +185,13 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                 >
                   <p
                     style={{
-                      fontSize: 11,
-                      color: "#666",
+                      fontFamily: "var(--font-text)",
+                      fontSize: 17,
+                      fontWeight: 400,
+                      color: "#78716C",
                       margin: "8px 0 0",
-                      lineHeight: "18px",
+                      lineHeight: 1.6,
+                      textWrap: "pretty",
                     }}
                   >
                     {product.description}
@@ -263,8 +274,9 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
                       borderRadius: 9999,
                       backgroundColor: "#000",
                       color: "#FFF",
-                      fontSize: 14,
-                      fontWeight: 500,
+                      fontFamily: "var(--font-display)",
+                      fontSize: 19,
+                      fontWeight: 600,
                       textDecoration: "none",
                       transition:
                         "transform 0.15s ease, opacity 0.15s ease",
@@ -300,9 +312,11 @@ export default function RamenModal({ product, onClose }: RamenModalProps) {
               {/* Attribution */}
               <div
                 style={{
+                  fontFamily: "var(--font-mono)",
                   marginTop: 12,
-                  fontSize: 11,
-                  color: "#666",
+                  fontSize: 13,
+                  fontWeight: 400,
+                  color: "#78716C",
                   textAlign: "center",
                   lineHeight: "16px",
                 }}

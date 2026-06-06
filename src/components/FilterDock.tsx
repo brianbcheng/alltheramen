@@ -797,6 +797,8 @@ export default function FilterDock({
                 style={{
                   fontSize: 14,
                   fontFamily: "var(--font-display)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
                   color: "#1C1917",
                   whiteSpace: "nowrap",
                   userSelect: "none",
