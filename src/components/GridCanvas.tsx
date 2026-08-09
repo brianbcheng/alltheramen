@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useMotionValue, useAnimationFrame, animate } from "framer-motion";
+import type { AnimationPlaybackControls } from "framer-motion";
 import { useGridVirtualization } from "@/hooks/useGridVirtualization";
 import { CELL_WIDTH, CELL_HEIGHT, TILE_WIDTH, TILE_HEIGHT } from "@/lib/grid";
 import RamenTile from "./RamenTile";
@@ -22,6 +23,14 @@ const MOMENTUM_DECAY = 0.95;
 const MOMENTUM_MIN = 0.5;
 const MOBILE_BREAKPOINT = 768;
 const MOBILE_SCALE = 1.02; // mobile scale — preserves visual tile size after desktop bump
+
+// ── Wheel / trackpad panning ───────────────────────────────
+// Fraction of the outstanding wheel delta consumed per 60fps frame. Higher =
+// snappier and closer to the raw trackpad, lower = smoother but laggier.
+const WHEEL_SMOOTHING = 0.22;
+const WHEEL_EPSILON = 0.05; // px — below this the residual delta is dropped
+const BASE_FRAME_MS = 1000 / 60;
+const LINE_HEIGHT_PX = 16; // Firefox DOM_DELTA_LINE → px
 
 interface GridCanvasProps {
   dataMap: Map<string, RamenProduct>;
@@ -49,6 +58,9 @@ export default function GridCanvas({
   const lastPointerPos = useRef<{ x: number; y: number } | null>(null);
   const velocityRef = useRef({ x: 0, y: 0 });
   const wasNavigatingRef = useRef(false);
+  // Outstanding wheel distance not yet applied to the camera, eased out per frame
+  const wheelPendingRef = useRef({ x: 0, y: 0 });
+  const recenterAnimRef = useRef<AnimationPlaybackControls[]>([]);
 
   const maxRow = Math.max(0, Math.ceil(totalProducts / gridCols) - 1);
   const actualCols = Math.min(gridCols, totalProducts);
@@ -86,14 +98,72 @@ export default function GridCanvas({
         motionY.set(initialY);
         setRenderOffset({ x: initialX, y: initialY });
       } else {
-        animate(motionX, initialX, { type: "spring", stiffness: 200, damping: 30 });
-        animate(motionY, initialY, { type: "spring", stiffness: 200, damping: 30 });
+        recenterAnimRef.current = [
+          animate(motionX, initialX, { type: "spring", stiffness: 200, damping: 30 }),
+          animate(motionY, initialY, { type: "spring", stiffness: 200, damping: 30 }),
+        ];
       }
     }
   }, [viewportSize.width, totalProducts, initialX, initialY, motionX, motionY]);
 
+  // Trackpad / wheel panning — two-axis, so diagonal gestures pan diagonally.
+  // Registered natively because React's onWheel is passive and cannot preventDefault.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    function handleWheel(e: WheelEvent) {
+      // Pinch-zoom arrives as ctrl+wheel — swallow it, the canvas has no zoom
+      e.preventDefault();
+      if (e.ctrlKey) return;
+
+      const unit =
+        e.deltaMode === 1
+          ? LINE_HEIGHT_PX
+          : e.deltaMode === 2
+            ? viewportSize.height || window.innerHeight
+            : 1;
+
+      // Smaller tiles pan faster, matching the drag compensation
+      const scaleFactor = unit / tileScale;
+
+      // Scrolling down/right moves the camera the opposite way
+      wheelPendingRef.current = {
+        x: wheelPendingRef.current.x - e.deltaX * scaleFactor,
+        y: wheelPendingRef.current.y - e.deltaY * scaleFactor,
+      };
+
+      // Wheel input takes over: drop leftover drag momentum and any recentring
+      velocityRef.current = { x: 0, y: 0 };
+      if (recenterAnimRef.current.length > 0) {
+        for (const anim of recenterAnimRef.current) anim.stop();
+        recenterAnimRef.current = [];
+      }
+    }
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [tileScale, viewportSize.height]);
+
   // Sync motion values → render offset + momentum
-  useAnimationFrame(() => {
+  useAnimationFrame((_time, delta) => {
+    // Ease out the outstanding wheel distance, frame-rate independent so the
+    // feel is identical on 60Hz and 120Hz displays
+    const pending = wheelPendingRef.current;
+    if (pending.x !== 0 || pending.y !== 0) {
+      const t = 1 - Math.pow(1 - WHEEL_SMOOTHING, delta / BASE_FRAME_MS);
+      const stepX = pending.x * t;
+      const stepY = pending.y * t;
+      motionX.set(motionX.get() + stepX);
+      motionY.set(motionY.get() + stepY);
+      const nextX = pending.x - stepX;
+      const nextY = pending.y - stepY;
+      wheelPendingRef.current = {
+        x: Math.abs(nextX) < WHEEL_EPSILON ? 0 : nextX,
+        y: Math.abs(nextY) < WHEEL_EPSILON ? 0 : nextY,
+      };
+    }
+
     const x = motionX.get();
     const y = motionY.get();
 
@@ -242,6 +312,7 @@ export default function GridCanvas({
         overflow: "hidden",
         backgroundColor: "#FFFFFF",
         touchAction: "none",
+        overscrollBehavior: "none",
         cursor: isNavigating ? "grabbing" : "default",
         position: "relative",
       }}
