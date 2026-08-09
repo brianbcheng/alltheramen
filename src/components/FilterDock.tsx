@@ -631,7 +631,9 @@ export default function FilterDock({
                     Flavor
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {flavors.map((f) => {
+                    {flavors.length === 0 ? (
+                      <span style={{ fontSize: 13, color: "#A8A29E" }}>No flavor tags for this selection</span>
+                    ) : flavors.map((f) => {
                       const sel = selectedFlavors.has(f.id);
                       return (
                         <button key={f.id} onClick={() => onToggleFlavor(f.id)} style={chipStyle(sel)}>
@@ -1174,7 +1176,11 @@ export default function FilterDock({
                         {selectedFlavors.size > 0 && (
                           <button onClick={onClearFlavors} style={{ ...optionStyle(false), color: "#E63946", fontWeight: 500 }}>Clear All</button>
                         )}
-                        {flavors.map((f) => {
+                        {flavors.length === 0 ? (
+                          <div style={{ padding: "12px 14px", fontSize: 12, color: "#A8A29E", textAlign: "center" }}>
+                            No flavor tags for this selection
+                          </div>
+                        ) : flavors.map((f) => {
                           const sel = selectedFlavors.has(f.id);
                           return (
                             <button key={f.id} onClick={() => onToggleFlavor(f.id)} style={optionStyle(sel)}>

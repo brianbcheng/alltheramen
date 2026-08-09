@@ -80,9 +80,9 @@ export default function RamenExplorer() {
       if (selectedFlavors.size === 0) return true;
       const tags = flavorTagsMap.get(p.id) || new Set<string>();
       for (const flavor of selectedFlavors) {
-        if (!tags.has(flavor)) return false;
+        if (tags.has(flavor)) return true;
       }
-      return true;
+      return false;
     };
 
     const matchesBrand = (p: RamenProduct): boolean =>
@@ -115,6 +115,7 @@ export default function RamenExplorer() {
       }
 
       // Flavors: apply brand + country + rating (skip flavor)
+      // (OR logic means adding flavors expands results, so show all available)
       if (brand && country && rating) {
         const tags = flavorTagsMap.get(p.id) || new Set<string>();
         for (const tag of tags) flavorsSet.add(tag);
